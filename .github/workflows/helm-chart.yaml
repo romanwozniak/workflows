@@ -15,11 +15,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run chart-releaser
-        uses: stefanprodan/helm-gh-pages@v1.4.1
+        uses: stefanprodan/helm-gh-pages@master
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           charts_url: https://turing-ml.github.io/helm-charts
-          charts_dir: charts/turing
+          charts_dir: charts
           owner: turing-ml
           repository: helm-charts
           helm_version: 2.17.0
