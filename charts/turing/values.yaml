@@ -1,0 +1,134 @@
+# This values.yaml file provides default configuration for Turing Helm chart. 
+# It is also currently used to generate README.md using helm-docs
+# https://github.com/norwoodj/helm-docs
+
+turing:
+  image:
+    # -- Docker registry for Turing API image. User is required to override
+    # the registry for now as there is no publicly available Turing image
+    registry: docker.io/
+    # -- Docker image repository for Turing API
+    repository: turing
+    # -- Docker image tag for Turing API
+    tag: latest
+  # -- Resources requests and limits for Turing API. This should be set 
+  # according to your cluster capacity and service level objectives.
+  # Reference: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+  livenessProbe:
+    # -- HTTP path for liveness check
+    path: "/v1/internal/live"
+  readinessProbe:
+    # -- HTTP path for readiness check
+    path: "/v1/internal/ready"
+  service:
+    # -- Turing API Kubernetes service port number
+    externalPort: 8080
+    # -- Turing API container port number
+    internalPort: 8080
+  ingress:
+    # -- Enable ingress to provision Ingress resource for external access to Turing API
+    enabled: false
+    # -- Set host value to enable name based virtual hosting. This allows routing
+    # HTTP traffic to multiple host names at the same IP address. If no host is
+    # specified, the ingress rule applies to all inbound HTTP traffic through 
+    # the IP address specified.
+    # https://kubernetes.io/docs/concepts/services-networking/ingress/#name-based-virtual-hosting
+    host: ""
+    # -- Ingress class annotation to add to this Ingress rule, 
+    # useful when there are multiple ingress controllers installed
+    class: ""
+
+  # -- Turing API server configuration. 
+  # Refer to https://github.com/gojek/turing/blob/main/api/turing/config/example.yaml
+  config: {}
+
+  # -- List of string containing additional Turing API server arguments. For
+  # example, multiple "-config" can be specified to use multiple config files
+  extraArgs: []
+  # Example
+  # - -config=/etc/secrets/experiment.yaml
+  # - -config=/etc/secrets/database.yaml
+
+  # -- List of extra environment variables to add to Turing API server container
+  extraEnvs: []
+  # # Example
+  # - name: DEMO_GREETING
+  #   value: "Hello from the environment"
+  # - name: DEMO_FAREWELL
+  #   value: "Such a sweet sorrow"
+
+  # -- List of extra initContainers to add to the Pod. For example, you
+  # need to run some init scripts to fetch credentials from a remote server
+  extraInitContainers: []
+  # # Example
+  # - name: init-myservice
+  #   image: busybox:1.28
+  #   command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+
+  # -- List of sidecar containers to attach to the Pod. For example, you can
+  # attach sidecar container that forward logs or dynamically update some 
+  # configuration files.
+  extraContainers: []
+  # Example
+  # - name: count-agent
+  #   image: k8s.gcr.io/fluentd-gcp:1.30
+  #   env:
+  #   - name: FLUENTD_ARGS
+  #     value: -c /etc/fluentd-config/fluentd.conf
+  #   volumeMounts:
+  #   - name: varlog
+  #     mountPath: /var/log
+  #   - name: config-volume
+  #     mountPath: /etc/fluentd-config
+
+  # -- Extra volumes to attach to the Pod. For example, you can mount 
+  # additional secrets to these volumes
+  extraVolumes: []
+  # # Example
+  # - name: varlog
+  #   emptyDir: {}
+
+  # -- Extra volume mounts to attach to Turing API server container. For example
+  # to mount the extra volume containing secrets
+  extraVolumeMounts: []
+  # # Example
+  # - name: varlog
+  #   mountPath: /var/log
+
+dbMigrations:
+  image:
+    # -- Docker tag for golang-migrate Docker image https://hub.docker.com/r/migrate/migrate
+    tag: v4.7.1
+
+swaggerUi:
+  image:
+    # -- Docker registry for Turing Swagger UI image. User is required to override
+    # the registry for now as there is no publicly available Turing Swagger UI image
+    registry: ghcr.io/turing
+    # -- Docker image repository for Turing Swagger UI
+    repository: turing-swagger
+    # -- Docker image tag for Turing Swagger UI
+    tag: latest
+  # -- URL of API server
+  apiServer: "http://127.0.0.1/v1"
+  service:
+    # -- Swagger UI container port number
+    internalPort: 8081
+    # -- Swagger UI Kubernetes service port number
+    externalPort: 8080
+
+postgresql:
+  # -- Resources requests and limits for Turing database. This should be set 
+  # according to your cluster capacity and service level objectives.
+  # Reference: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+  persistence:
+    # -- Persist Postgresql data in a Persistent Volume Claim 
+    enabled: true
+  # -- Database name for Turing Postgresql database
+  postgresqlDatabase: turing
+  # -- Username for Turing Postgresql database
+  postgresqlUsername: turing
+  # -- Password for Turing Postgresql database (required)
+  postgresqlPassword:

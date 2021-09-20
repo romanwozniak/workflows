@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "turing.fullname" .}}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "turing.fullname" .}}
+    chart: {{ template "turing.chart" .}}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.turing.labels }}
+{{ toYaml .Values.turing.labels | indent 4 -}}
+{{- end }}
+spec:
+  replicas: {{ .Values.turing.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "turing.fullname" .}}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ template "turing.fullname" .}}
+        release: {{ .Release.Name }}
+{{- if .Values.turing.labels }}
+{{ toYaml .Values.turing.labels | indent 8 -}}
+{{- end }}
+    spec:
+      initContainers:
+      - name: migrations
+        image: "migrate/migrate:{{ .Values.dbMigrations.image.tag }}"
+        command: ['/bin/sh', '-c']
+        args:
+        - |
+          /migrate \
+          -path /migrations \
+          -database postgres://{{ .Values.postgresql.postgresqlUsername }}:$(PG_PASSWORD)@{{ template "postgresql.host" . }}:5432/{{ .Values.postgresql.postgresqlDatabase }}?sslmode=disable \
+          up
+        env:
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-postgresql
+              key: postgresql-password
+        volumeMounts:
+          - mountPath: /migrations
+            name: db-migrations
+      {{- with .Values.turing.extraInitContainers }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      containers:
+      - name: api
+        image: {{ .Values.turing.image.registry }}{{ .Values.turing.image.repository }}:{{ .Values.turing.image.tag }}
+        imagePullPolicy: {{ .Values.turing.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.turing.service.internalPort }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.turing.livenessProbe.path }}
+            port: {{ .Values.turing.service.internalPort }}
+            scheme: HTTP
+          initialDelaySeconds: {{ default "60" .Values.turing.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "10" .Values.turing.livenessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.turing.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default "5" .Values.turing.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.turing.readinessProbe.path }}
+            port: {{ .Values.turing.service.internalPort }}
+            scheme: HTTP
+          initialDelaySeconds: {{ default "60" .Values.turing.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default "10" .Values.turing.readinessProbe.periodSeconds }}
+          successThreshold: {{ default "1" .Values.turing.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ default "5" .Values.turing.readinessProbe.timeoutSeconds }}
+        resources:
+          {{- toYaml .Values.turing.resources | nindent 12 }}
+        command:
+        - /app/turing-api
+        args:
+        - -config=/etc/turing/config.yaml
+        {{- with .Values.turing.extraArgs }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        env:
+        {{- with .Values.turing.extraEnvs }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/turing
+        {{- with .Values.turing.extraVolumeMounts }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      - name: swagger-ui
+        image: {{ .Values.swaggerUi.image.registry }}{{ .Values.swaggerUi.image.repository }}:{{ .Values.swaggerUi.image.tag }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.swaggerUi.service.internalPort }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        env:
+        - name: LAYOUT
+          value: "BaseLayout"
+        - name: SWAGGER_JSON
+          value: "/app/api/openapi.yaml"
+        - name: PORT
+          value: "{{ .Values.swaggerUi.service.internalPort }}"
+        - name: API_SERVER
+          value: "{{ .Values.swaggerUi.apiServer }}"
+        command: ['sh', '-c']
+        args:
+        - |
+          echo "Update Swagger config..."
+          sed -r -i 's%^((\s*)-(\s*)url\s*:).*$$%\1 "'$${API_SERVER}'"%' $${SWAGGER_JSON}
+          echo "Running Swagger UI..."
+          /usr/share/nginx/run.sh
+      {{- with .Values.turing.extraContainers }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      volumes:
+      - name: config 
+        secret:
+          secretName: {{ template "turing.fullname" .}}-api-config
+      - name: db-migrations
+        configMap:
+          name: {{ .Release.Name }}-db-migrations
+      {{- with .Values.turing.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+
+{{- if (not .Values.turing.nodeSelectorDisabled) }}
+{{- if .Values.turing.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.turing.nodeSelector | indent 8 }}
+{{ end -}}
+{{ end -}}
