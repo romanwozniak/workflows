@@ -12,11 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: azure/setup-helm@v1
-        with:
-          version: 'v2.17.0'
       - name: Run chart-releaser
         uses: stefanprodan/helm-gh-pages@master
         with:
