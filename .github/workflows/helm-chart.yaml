@@ -20,8 +20,5 @@ jobs:
           charts_dir: charts
           owner: turing-ml
           repository: helm-charts
-          helm_version: 2.17.0
           branch: gh-pages
-          target_dir: charts/turing
-          commit_username: romanwozniak
-          commit_email: romeo.wozniak@gmail.com
+          target_dir: charts
