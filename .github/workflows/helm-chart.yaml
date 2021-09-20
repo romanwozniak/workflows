@@ -19,7 +19,11 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           charts_url: https://turing-ml.github.io/helm-charts
-          charts_dir: charts
+          charts_dir: charts/turing
           owner: turing-ml
           repository: helm-charts
           helm_version: 2.17.0
+          branch: gh-pages
+          target_dir: charts/turing
+          commit_username: romanwozniak
+          commit_email: romeo.wozniak@gmail.com
