@@ -22,3 +22,4 @@ jobs:
           charts_dir: charts
           owner: turing-ml
           repository: helm-charts
+          helm_version: 2.17.0
