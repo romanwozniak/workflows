@@ -12,6 +12,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Run chart-releaser
         uses: stefanprodan/helm-gh-pages@master
         with:
@@ -21,4 +22,3 @@ jobs:
           owner: turing-ml
           repository: helm-charts
           branch: gh-pages
-          target_dir: charts
