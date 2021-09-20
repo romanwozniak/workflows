@@ -15,7 +15,7 @@ jobs:
       - name: Run chart-releaser
         uses: stefanprodan/helm-gh-pages@master
         with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ secrets.GH_BOT_TOKEN }}"
           charts_url: https://turing-ml.github.io/helm-charts
           charts_dir: charts
           owner: turing-ml
