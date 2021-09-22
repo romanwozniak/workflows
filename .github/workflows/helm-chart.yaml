@@ -17,8 +17,8 @@ jobs:
         uses: stefanprodan/helm-gh-pages@master
         with:
           token: "${{ secrets.GH_BOT_TOKEN }}"
-          charts_url: https://turing-ml.github.io/helm-charts
+          charts_url: https://dsp-tech.github.io/charts
           charts_dir: charts
-          owner: turing-ml
-          repository: helm-charts
-          branch: gh-pages
+          owner: dsp-tech
+          repository: charts
+          branch: main
