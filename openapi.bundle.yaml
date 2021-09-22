@@ -1,0 +1,3853 @@
+openapi: 3.0.3
+info:
+  title: Turing API
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080/v1
+security:
+  - bearerAuth: []
+paths:
+  /projects:
+    get:
+      tags:
+        - Project
+      summary: List existing projects
+      description: Projects can be filtered by optional `name` parameter
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    id:
+                      type: integer
+                      format: int32
+                    name:
+                      type: string
+                    mlflow_tracking_url:
+                      type: string
+                    administrators:
+                      type: array
+                      items:
+                        type: string
+                    readers:
+                      type: array
+                      items:
+                        type: string
+                    team:
+                      type: string
+                    stream:
+                      type: string
+                    labels:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          key:
+                            type: string
+                          value:
+                            type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+  "/projects/{project_id}/ensemblers":
+    get:
+      tags:
+        - Ensembler
+      operationId: ListEnsemblers
+      summary: Returns a list of ensemblers that belong to the project
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum:
+              - pyfunc
+      responses:
+        "200":
+          description: A JSON object, that represents paginated results response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      paging:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            format: int32
+                            description: Total number of results matching the query criteria
+                          page:
+                            type: integer
+                            format: int32
+                            description: Number of the current page
+                          pages:
+                            type: integer
+                            format: int32
+                            description: Total number of pages
+                  - type: object
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          required:
+                            - type
+                          properties:
+                            id:
+                              $ref: "#/paths/~1projects/get/responses/200/content/a\
+                                pplication~1json/schema/items/properties/id"
+                            project_id:
+                              $ref: "#/paths/~1projects/get/responses/200/content/a\
+                                pplication~1json/schema/items/properties/id"
+                            type:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemble\
+                                rs/get/parameters/3/schema"
+                            name:
+                              type: string
+                              minLength: 3
+                              maxLength: 20
+                            created_at:
+                              type: string
+                              format: date-time
+                            updated_at:
+                              type: string
+                              format: date-time
+    post:
+      tags:
+        - Ensembler
+      operationId: CreateEnsembler
+      summary: Saves a user-defined ensembler into the project
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers/get/parameters/\
+              0/schema"
+          required: true
+      requestBody:
+        description: A JSON object containing information about the ensembler
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              oneOf:
+                - allOf:
+                    - $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers/get/r\
+                        esponses/200/content/application~1json/schema/allOf/1/p\
+                        roperties/results/items"
+                    - type: object
+                      properties:
+                        mlflow_url:
+                          type: string
+                          format: uri
+                        mlflow_experiment_id:
+                          $ref: "#/paths/~1projects/get/responses/200/content/appli\
+                            cation~1json/schema/items/properties/id"
+                        mlflow_run_id:
+                          type: string
+                        artifact_uri:
+                          type: string
+                          format: uri
+              discriminator:
+                propertyName: type
+                mapping:
+                  pyfunc: "#/components/schemas/PyFuncEnsembler"
+      responses:
+        "201":
+          description: A JSON representation of a successfully saved ensembler
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers/post/reques\
+                  tBody/content/application~1json/schema"
+  "/projects/{project_id}/ensemblers/{ensembler_id}":
+    get:
+      tags:
+        - Ensembler
+      operationId: GetEnsemblerDetails
+      summary: Returns Ensembler's details by its ID
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: ensembler_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers~1%7Bensembler_i\
+              d%7D/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: A JSON object representing an instance of the specific type of
+            Ensembler
+          content:
+            application/json:
+              schema:
+                type: object
+                oneOf:
+                  - allOf:
+                      - required:
+                          - type
+                        properties:
+                          id:
+                            $ref: "#/paths/~1projects/get/responses/200/content/app\
+                              lication~1json/schema/items/properties/id"
+                          project_id:
+                            $ref: "#/paths/~1projects/get/responses/200/content/app\
+                              lication~1json/schema/items/properties/id"
+                          type:
+                            type: string
+                            enum:
+                              - pyfunc
+                          name:
+                            type: string
+                            minLength: 3
+                            maxLength: 20
+                          created_at:
+                            type: string
+                            format: date-time
+                          updated_at:
+                            type: string
+                            format: date-time
+                      - type: object
+                        properties:
+                          mlflow_url:
+                            type: string
+                            format: uri
+                          mlflow_experiment_id:
+                            $ref: "#/paths/~1projects/get/responses/200/content/app\
+                              lication~1json/schema/items/properties/id"
+                          mlflow_run_id:
+                            type: string
+                          artifact_uri:
+                            type: string
+                            format: uri
+                discriminator:
+                  propertyName: type
+                  mapping:
+                    pyfunc: "#/components/schemas/PyFuncEnsembler"
+    put:
+      tags:
+        - Ensembler
+      operationId: UpdateEnsembler
+      summary: Updates existing Ensembler with the data provided in the payload
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers~1%7Bensembler_i\
+              d%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: ensembler_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers~1%7Bensembler_i\
+              d%7D/get/parameters/0/schema"
+          required: true
+      requestBody:
+        description: A JSON object, representing an update to the ensembler
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers~1%7Bensembler\
+                _id%7D/get/responses/200/content/application~1json/schema"
+      responses:
+        "200":
+          description: A JSON object representing an instance of updated Ensembler
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers~1%7Bensembl\
+                  er_id%7D/get/responses/200/content/application~1json/schema"
+  "/projects/{project_id}/jobs":
+    get:
+      tags:
+        - Ensembling Job
+      operationId: ListEnsemblingJobs
+      summary: Returns a list of ensembling jobs that belong to the project
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: ensembler_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/get/parameters/0/sche\
+              ma"
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - pending
+                - building
+                - running
+                - terminating
+                - terminated
+                - completed
+                - failed
+                - failed_submission
+                - failed_building
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: A JSON object, that represents paginated results response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      paging:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1ensemblers/get\
+                          /responses/200/content/application~1json/schema/allOf\
+                          /0/properties/paging"
+                  - type: object
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/post/re\
+                            questBody/content/application~1json/schema"
+    post:
+      tags:
+        - Ensembling Job
+      operationId: CreateEnsemblingJob
+      summary: Submit an Ensembling job.
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/get/parameters/0/sche\
+              ma"
+          required: true
+      requestBody:
+        description: A JSON object that contains the configuration of the ensembling job
+        required: true
+        content:
+          application/json:
+            schema:
+              description: A JSON object that represents an ensembling job for batch
+                experiment use cases
+              properties:
+                id:
+                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/get/parameters/\
+                    0/schema"
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                  readOnly: true
+                project_id:
+                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/get/parameters/\
+                    0/schema"
+                ensembler_id:
+                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/get/parameters/\
+                    0/schema"
+                environment_name:
+                  type: string
+                infra_config:
+                  type: object
+                  properties:
+                    artifact_uri:
+                      type: string
+                    ensembler_name:
+                      type: string
+                    service_account_name:
+                      type: string
+                    resources:
+                      type: object
+                      nullable: true
+                      properties:
+                        driver_cpu_request:
+                          type: string
+                        driver_memory_request:
+                          type: string
+                        executor_replica:
+                          type: integer
+                        executor_cpu_request:
+                          type: string
+                        executor_memory_request:
+                          type: string
+                job_config:
+                  type: object
+                  required:
+                    - version
+                    - kind
+                    - spec
+                  properties:
+                    version:
+                      type: string
+                    kind:
+                      type: string
+                      enum:
+                        - BatchEnsemblingJob
+                    metadata:
+                      description: Ensembling job Metadata
+                      required:
+                        - name
+                      properties:
+                        name:
+                          type: string
+                        annotations:
+                          type: object
+                          nullable: true
+                          additionalProperties:
+                            type: string
+                    spec:
+                      description: Ensembling job Specification
+                      required:
+                        - source
+                        - predictions
+                        - ensembler
+                        - sink
+                      properties:
+                        source:
+                          type: object
+                          required:
+                            - dataset
+                            - join_on
+                          properties:
+                            dataset:
+                              type: object
+                              oneOf:
+                                - allOf:
+                                    - type: object
+                                      required:
+                                        - type
+                                      properties:
+                                        type:
+                                          <<:
+                                            type: string
+                                            enum:
+                                              - BQ
+                                    - type: object
+                                      required:
+                                        - bq_config
+                                      properties:
+                                        type:
+                                          <<:
+                                            type: string
+                                            enum:
+                                              - BQ
+                                          default: BQ
+                                        bq_config:
+                                          properties:
+                                            table:
+                                              type: string
+                                              pattern: ^([a-z][a-z0-9-]+\.\w+([_]?\w)+\.\w+([_]?\w)+)?$
+                                            features:
+                                              type: array
+                                              nullable: true
+                                              items:
+                                                type: string
+                                            query:
+                                              type: string
+                                            options:
+                                              type: object
+                                              nullable: true
+                                              additionalProperties:
+                                                type: string
+                              discriminator:
+                                propertyName: type
+                                mapping:
+                                  BQ: "#/components/schemas/BigQueryDataset"
+                            join_on:
+                              type: array
+                              items:
+                                type: string
+                        predictions:
+                          type: object
+                          additionalProperties:
+                            type: object
+                            allOf:
+                              - $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/p\
+                                  ost/requestBody/content/application~1json/sch\
+                                  ema/properties/job_config/properties/spec/pro\
+                                  perties/source"
+                              - type: object
+                                properties:
+                                  columns:
+                                    type: array
+                                    nullable: true
+                                    items:
+                                      type: string
+                        ensembler:
+                          type: object
+                          required:
+                            - uri
+                            - result
+                          properties:
+                            uri:
+                              type: string
+                              format: uri
+                              default: ""
+                            result:
+                              type: object
+                              required:
+                                - column_name
+                                - type
+                              properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - DOUBLE
+                                    - FLOAT
+                                    - INTEGER
+                                    - LONG
+                                    - STRING
+                                    - ARRAY
+                                item_type:
+                                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs\
+                                    /post/requestBody/content/application~1json\
+                                    /schema/properties/job_config/properties/sp\
+                                    ec/properties/ensembler/properties/result/p\
+                                    roperties/type"
+                                column_name:
+                                  type: string
+                        sink:
+                          type: object
+                          oneOf:
+                            - allOf:
+                                - type: object
+                                  required:
+                                    - type
+                                    - save_mode
+                                  properties:
+                                    type:
+                                      <<:
+                                        type: string
+                                        enum:
+                                          - CONSOLE
+                                          - BQ
+                                    columns:
+                                      type: array
+                                      nullable: true
+                                      items:
+                                        type: string
+                                    save_mode:
+                                      type: string
+                                      enum:
+                                        - ERRORIFEXISTS
+                                        - OVERWRITE
+                                        - APPEND
+                                        - IGNORE
+                                - type: object
+                                  required:
+                                    - bq_config
+                                  properties:
+                                    type:
+                                      <<:
+                                        type: string
+                                        enum:
+                                          - CONSOLE
+                                          - BQ
+                                      default: BQ
+                                    bq_config:
+                                      type: object
+                                      required:
+                                        - table
+                                        - staging_bucket
+                                      properties:
+                                        table:
+                                          type: string
+                                        staging_bucket:
+                                          type: string
+                                        options:
+                                          type: object
+                                          nullable: true
+                                          additionalProperties:
+                                            type: string
+                          discriminator:
+                            propertyName: type
+                            mapping:
+                              BQ: "#/components/schemas/BigQuerySink"
+                status:
+                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/get/parameters/\
+                    5/schema/items"
+                error:
+                  type: string
+                monitoring_url:
+                  type: string
+                  readOnly: true
+                created_at:
+                  type: string
+                  format: date-time
+                  readOnly: true
+                updated_at:
+                  type: string
+                  format: date-time
+                  readOnly: true
+      responses:
+        "202":
+          description: Accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs/post/requestBody/\
+                  content/application~1json/schema"
+  "/projects/{project_id}/jobs/{job_id}":
+    get:
+      tags:
+        - Ensembling Job
+      operationId: GetEnsemblingJob
+      summary: Get an existing Ensembling job.
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: job_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D/get/par\
+              ameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: A JSON object representing an Ensembling Job
+          content:
+            application/json:
+              schema:
+                description: A JSON object that represents an ensembling job for batch
+                  experiment use cases
+                properties:
+                  id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D\
+                      /get/parameters/0/schema"
+                  name:
+                    type: string
+                    minLength: 3
+                    maxLength: 50
+                    readOnly: true
+                  project_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D\
+                      /get/parameters/0/schema"
+                  ensembler_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D\
+                      /get/parameters/0/schema"
+                  environment_name:
+                    type: string
+                  infra_config:
+                    type: object
+                    properties:
+                      artifact_uri:
+                        type: string
+                      ensembler_name:
+                        type: string
+                      service_account_name:
+                        type: string
+                      resources:
+                        type: object
+                        nullable: true
+                        properties:
+                          driver_cpu_request:
+                            type: string
+                          driver_memory_request:
+                            type: string
+                          executor_replica:
+                            type: integer
+                          executor_cpu_request:
+                            type: string
+                          executor_memory_request:
+                            type: string
+                  job_config:
+                    type: object
+                    required:
+                      - version
+                      - kind
+                      - spec
+                    properties:
+                      version:
+                        type: string
+                      kind:
+                        type: string
+                        enum:
+                          - BatchEnsemblingJob
+                      metadata:
+                        description: Ensembling job Metadata
+                        required:
+                          - name
+                        properties:
+                          name:
+                            type: string
+                          annotations:
+                            type: object
+                            nullable: true
+                            additionalProperties:
+                              type: string
+                      spec:
+                        description: Ensembling job Specification
+                        required:
+                          - source
+                          - predictions
+                          - ensembler
+                          - sink
+                        properties:
+                          source:
+                            type: object
+                            required:
+                              - dataset
+                              - join_on
+                            properties:
+                              dataset:
+                                type: object
+                                oneOf:
+                                  - allOf:
+                                      - type: object
+                                        required:
+                                          - type
+                                        properties:
+                                          type:
+                                            <<:
+                                              type: string
+                                              enum:
+                                                - BQ
+                                      - type: object
+                                        required:
+                                          - bq_config
+                                        properties:
+                                          type:
+                                            <<:
+                                              type: string
+                                              enum:
+                                                - BQ
+                                            default: BQ
+                                          bq_config:
+                                            properties:
+                                              table:
+                                                type: string
+                                                pattern: ^([a-z][a-z0-9-]+\.\w+([_]?\w)+\.\w+([_]?\w)+)?$
+                                              features:
+                                                type: array
+                                                nullable: true
+                                                items:
+                                                  type: string
+                                              query:
+                                                type: string
+                                              options:
+                                                type: object
+                                                nullable: true
+                                                additionalProperties:
+                                                  type: string
+                                discriminator:
+                                  propertyName: type
+                                  mapping:
+                                    BQ: "#/components/schemas/BigQueryDataset"
+                              join_on:
+                                type: array
+                                items:
+                                  type: string
+                          predictions:
+                            type: object
+                            additionalProperties:
+                              type: object
+                              allOf:
+                                - $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs\
+                                    ~1%7Bjob_id%7D/get/responses/200/content/ap\
+                                    plication~1json/schema/properties/job_confi\
+                                    g/properties/spec/properties/source"
+                                - type: object
+                                  properties:
+                                    columns:
+                                      type: array
+                                      nullable: true
+                                      items:
+                                        type: string
+                          ensembler:
+                            type: object
+                            required:
+                              - uri
+                              - result
+                            properties:
+                              uri:
+                                type: string
+                                format: uri
+                                default: ""
+                              result:
+                                type: object
+                                required:
+                                  - column_name
+                                  - type
+                                properties:
+                                  type:
+                                    type: string
+                                    enum:
+                                      - DOUBLE
+                                      - FLOAT
+                                      - INTEGER
+                                      - LONG
+                                      - STRING
+                                      - ARRAY
+                                  item_type:
+                                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jo\
+                                      bs~1%7Bjob_id%7D/get/responses/200/conten\
+                                      t/application~1json/schema/properties/job\
+                                      _config/properties/spec/properties/ensemb\
+                                      ler/properties/result/properties/type"
+                                  column_name:
+                                    type: string
+                          sink:
+                            type: object
+                            oneOf:
+                              - allOf:
+                                  - type: object
+                                    required:
+                                      - type
+                                      - save_mode
+                                    properties:
+                                      type:
+                                        <<:
+                                          type: string
+                                          enum:
+                                            - CONSOLE
+                                            - BQ
+                                      columns:
+                                        type: array
+                                        nullable: true
+                                        items:
+                                          type: string
+                                      save_mode:
+                                        type: string
+                                        enum:
+                                          - ERRORIFEXISTS
+                                          - OVERWRITE
+                                          - APPEND
+                                          - IGNORE
+                                  - type: object
+                                    required:
+                                      - bq_config
+                                    properties:
+                                      type:
+                                        <<:
+                                          type: string
+                                          enum:
+                                            - CONSOLE
+                                            - BQ
+                                        default: BQ
+                                      bq_config:
+                                        type: object
+                                        required:
+                                          - table
+                                          - staging_bucket
+                                        properties:
+                                          table:
+                                            type: string
+                                          staging_bucket:
+                                            type: string
+                                          options:
+                                            type: object
+                                            nullable: true
+                                            additionalProperties:
+                                              type: string
+                            discriminator:
+                              propertyName: type
+                              mapping:
+                                BQ: "#/components/schemas/BigQuerySink"
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - building
+                      - running
+                      - terminating
+                      - terminated
+                      - completed
+                      - failed
+                      - failed_submission
+                      - failed_building
+                  error:
+                    type: string
+                  monitoring_url:
+                    type: string
+                    readOnly: true
+                  created_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  updated_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+        "404":
+          description: Invalid ensembling job
+    delete:
+      tags:
+        - Ensembling Job
+      operationId: TerminateEnsemblingJob
+      summary: Terminate an ongoing Ensembling Job.
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D/get/par\
+              ameters/0/schema"
+          required: true
+        - in: path
+          name: job_id
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D/get/par\
+              ameters/0/schema"
+          required: true
+      responses:
+        "202":
+          description: Accepted.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D\
+                      /get/parameters/0/schema"
+        "400":
+          description: Invalid ensembling job
+        "404":
+          description: Ensembling job not found
+  "/projects/{project_id}/routers/{router_id}/alerts":
+    get:
+      tags:
+        - Alerts
+      summary: List alerts for a router
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router for the alerts
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - environment
+                    - team
+                    - metric
+                  properties:
+                    id:
+                      type: integer
+                      readOnly: true
+                    created_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    updated_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    environment:
+                      type: string
+                    team:
+                      type: string
+                    service:
+                      type: string
+                    metric:
+                      type: string
+                      enum:
+                        - throughput
+                        - latency95p
+                        - error_rate
+                        - cpu_util
+                        - memory_util
+                    warning_threshold:
+                      type: number
+                    critical_threshold:
+                      type: number
+                    duration:
+                      type: string
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: project_id or router_id not found
+        "500":
+          description: Error retrieving the alerts for the router
+    post:
+      tags:
+        - Alerts
+      summary: Create a new alert for a router
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project the router belongs to
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router for the alert
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts/get/parameters/0/schema"
+          required: true
+      requestBody:
+        description: alert specification
+        content:
+          application/json:
+            schema:
+              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D\
+                ~1alerts/get/responses/200/content/application~1json/schema/ite\
+                ms"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%\
+                  7D~1alerts/get/responses/200/content/application~1json/schema\
+                  /items"
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: project_id or router_id not found
+        "500":
+          description: Error creating new alert
+  "/projects/{project_id}/routers/{router_id}/alerts/{alert_id}":
+    get:
+      tags:
+        - Alerts
+      summary: Get the alert for a router by ID
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router for the alerts
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: alert_id
+          description: id of the alert
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - environment
+                  - team
+                  - metric
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  created_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  updated_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  environment:
+                    type: string
+                  team:
+                    type: string
+                  service:
+                    type: string
+                  metric:
+                    type: string
+                    enum:
+                      - throughput
+                      - latency95p
+                      - error_rate
+                      - cpu_util
+                      - memory_util
+                  warning_threshold:
+                    type: number
+                  critical_threshold:
+                    type: number
+                  duration:
+                    type: string
+        "400":
+          description: Invalid project_id, router_id or alert_id
+        "404":
+          description: Alert not found
+        "500":
+          description: Error retrieving the alert
+    put:
+      tags:
+        - Alerts
+      summary: Update the alert for a router by ID
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project the router belongs to
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router for the alerts
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: alert_id
+          description: id of the alert
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+      requestBody:
+        description: alert specification
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D\
+                ~1alerts~1%7Balert_id%7D/get/responses/200/content/application~\
+                1json/schema"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%\
+                  7D~1alerts~1%7Balert_id%7D/get/responses/200/content/applicat\
+                  ion~1json/schema"
+        "400":
+          description: Invalid project_id, router_id or alert_id
+        "404":
+          description: Alert not found
+        "500":
+          description: Error updating the alert
+    delete:
+      tags:
+        - Alerts
+      summary: Delete the alert for a router by ID
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project the router belongs to
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router for the alerts
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: alert_id
+          description: id of the alert
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              alerts~1%7Balert_id%7D/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: Alert deleted successfully
+        "400":
+          description: Invalid project_id, router_id or alert_id
+        "404":
+          description: Alert not found
+        "500":
+          description: Error deleting the alert
+  "/projects/{project_id}/routers":
+    get:
+      tags:
+        - Router
+      summary: List routers belonging to project
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project to retrieve routers from
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      readOnly: true
+                    name:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    updated_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    project:
+                      type: integer
+                    environment_name:
+                      type: string
+                    endpoint:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - deployed
+                        - undeployed
+                        - failed
+                        - pending
+                      default: pending
+                    config:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        created_at:
+                          type: string
+                          format: date-time
+                          readOnly: true
+                        updated_at:
+                          type: string
+                          format: date-time
+                          readOnly: true
+                        router:
+                          type: object
+                          properties:
+                            Router:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                name:
+                                  type: string
+                                created_at:
+                                  type: string
+                                  format: date-time
+                                  readOnly: true
+                                updated_at:
+                                  type: string
+                                  format: date-time
+                                  readOnly: true
+                                project:
+                                  type: integer
+                                environment_name:
+                                  type: string
+                                endpoint:
+                                  type: string
+                                status:
+                                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1rout\
+                                    ers/get/responses/200/content/application~1\
+                                    json/schema/items/properties/status"
+                        version:
+                          type: integer
+                        status:
+                          type: string
+                          enum:
+                            - deployed
+                            - undeployed
+                            - failed
+                            - pending
+                          default: pending
+                        error:
+                          type: string
+                        image:
+                          type: string
+                        routes:
+                          type: array
+                          items:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/po\
+                              st/requestBody/content/application~1json/schema/p\
+                              roperties/config/properties/routes/items"
+                        default_route:
+                          type: string
+                        experiment_engine:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - nop
+                              default: nop
+                            config:
+                              type: object
+                              properties:
+                                deployment:
+                                  type: object
+                                  properties:
+                                    endpoint:
+                                      type: string
+                                    timeout:
+                                      type: string
+                                      description: timeout duration for responses from the
+                                        XP API server
+                                      example: 60ms
+                                client:
+                                  type: object
+                                  required:
+                                    - id
+                                    - username
+                                  properties:
+                                    id:
+                                      type: string
+                                    username:
+                                      type: string
+                                    passkey:
+                                      type: string
+                                experiments:
+                                  type: array
+                                  items:
+                                    type: object
+                                    required:
+                                      - id
+                                      - name
+                                      - client_id
+                                    properties:
+                                      id:
+                                        type: string
+                                      name:
+                                        type: string
+                                      client_id:
+                                        type: string
+                                      variants:
+                                        type: array
+                                        description: List of variants in the experiment
+                                        items:
+                                          type: object
+                                          properties:
+                                            name:
+                                              type: string
+                                              example: control
+                                variables:
+                                  type: object
+                                  properties:
+                                    client_variables:
+                                      description: list of variables defined for the client
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          name:
+                                            type: string
+                                          required:
+                                            type: boolean
+                                          type:
+                                            type: string
+                                            enum:
+                                              - unsupported
+                                              - unit
+                                              - filter
+                                    experiment_variables:
+                                      description: map of experiment id to its variables
+                                      type: object
+                                      properties:
+                                        default:
+                                          type: array
+                                          items:
+                                            $ref: "#/paths/~1projects~1%7Bproject_i\
+                                              d%7D~1routers/get/responses/200/c\
+                                              ontent/application~1json/schema/i\
+                                              tems/properties/config/properties\
+                                              /experiment_engine/properties/con\
+                                              fig/properties/variables/properti\
+                                              es/client_variables/items"
+                                      additionalProperties:
+                                        type: array
+                                        items:
+                                          $ref: "#/paths/~1projects~1%7Bproject_id%\
+                                            7D~1routers/get/responses/200/conte\
+                                            nt/application~1json/schema/items/p\
+                                            roperties/config/properties/experim\
+                                            ent_engine/properties/config/proper\
+                                            ties/variables/properties/client_va\
+                                            riables/items"
+                                    config:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          name:
+                                            type: string
+                                          required:
+                                            type: boolean
+                                          field:
+                                            type: string
+                                          field_source:
+                                            $ref: "#/paths/~1projects~1%7Bproject_i\
+                                              d%7D~1routers/post/requestBody/co\
+                                              ntent/application~1json/schema/pr\
+                                              operties/config/properties/rules/\
+                                              items/properties/conditions/items\
+                                              /properties/field_source"
+                        resource_request:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/post\
+                            /requestBody/content/application~1json/schema/prope\
+                            rties/config/properties/resource_request"
+                        timeout:
+                          type: string
+                        log_config:
+                          type: object
+                          properties:
+                            log_level:
+                              type: string
+                              enum:
+                                - DEBUG
+                                - INFO
+                                - WARN
+                                - ERROR
+                            custom_metrics_enabled:
+                              type: boolean
+                            fiber_debug_log_enabled:
+                              type: boolean
+                            jaeger_enabled:
+                              type: boolean
+                            result_logger_type:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/\
+                                post/requestBody/content/application~1json/sche\
+                                ma/properties/config/properties/log_config/prop\
+                                erties/result_logger_type"
+                            bigquery_config:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/\
+                                post/requestBody/content/application~1json/sche\
+                                ma/properties/config/properties/log_config/prop\
+                                erties/bigquery_config"
+                            kafka_config:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/\
+                                post/requestBody/content/application~1json/sche\
+                                ma/properties/config/properties/log_config/prop\
+                                erties/kafka_config"
+                        enricher:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/post\
+                            /requestBody/content/application~1json/schema/prope\
+                            rties/config/properties/enricher"
+                        ensembler:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/post\
+                            /requestBody/content/application~1json/schema/prope\
+                            rties/config/properties/ensembler"
+        "400":
+          description: Invalid project_id
+        "500":
+          description: Error retrieving routers
+    post:
+      tags:
+        - Router
+      summary: Create new router in project
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project to save router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/parameters/0/s\
+              chema"
+          required: true
+      requestBody:
+        description: router configuration to save
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - environment_name
+                - name
+                - config
+              properties:
+                environment_name:
+                  type: string
+                name:
+                  type: string
+                config:
+                  type: object
+                  required:
+                    - routes
+                    - default_route_id
+                    - experiment_engine
+                    - timeout
+                    - log_config
+                  properties:
+                    routes:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - id
+                          - type
+                          - endpoint
+                          - timeout
+                        properties:
+                          id:
+                            type: string
+                          type:
+                            type: string
+                          endpoint:
+                            type: string
+                          timeout:
+                            type: string
+                    rules:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - conditions
+                          - routes
+                        properties:
+                          conditions:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - field_source
+                                - field
+                                - operator
+                                - values
+                              properties:
+                                field_source:
+                                  type: string
+                                  enum:
+                                    - header
+                                    - payload
+                                field:
+                                  type: string
+                                  description: >
+                                    If `field_source` is `header`, then `field`
+                                    should contain the name of the request
+                                    header, otherwise, if `field_source` is
+                                    `payload`, then `field` should be a valid
+                                    json path
+                                operator:
+                                  type: string
+                                  enum:
+                                    - in
+                                values:
+                                  type: array
+                                  items:
+                                    type: string
+                          routes:
+                            type: array
+                            description: List of IDs of the routes, that should be
+                              activated by this rule
+                            items:
+                              type: string
+                    default_route_id:
+                      type: string
+                    experiment_engine:
+                      type: object
+                      properties:
+                        type:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/\
+                            responses/200/content/application~1json/schema/item\
+                            s/properties/config/properties/experiment_engine/pr\
+                            operties/type"
+                        config:
+                          type: object
+                          properties:
+                            client:
+                              type: object
+                              required:
+                                - id
+                                - username
+                              properties:
+                                id:
+                                  type: string
+                                username:
+                                  type: string
+                                passkey:
+                                  type: string
+                            experiments:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                  - id
+                                  - name
+                                  - client_id
+                                properties:
+                                  id:
+                                    type: string
+                                  name:
+                                    type: string
+                                  client_id:
+                                    type: string
+                                  variants:
+                                    type: array
+                                    description: List of variants in the experiment
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          example: control
+                            variables:
+                              type: object
+                              properties:
+                                client_variables:
+                                  description: list of variables defined for the client
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      name:
+                                        type: string
+                                      required:
+                                        type: boolean
+                                      type:
+                                        type: string
+                                        enum:
+                                          - unsupported
+                                          - unit
+                                          - filter
+                                experiment_variables:
+                                  description: map of experiment id to its variables
+                                  type: object
+                                  properties:
+                                    default:
+                                      type: array
+                                      items:
+                                        $ref: "#/paths/~1projects~1%7Bproject_id%7D\
+                                          ~1routers/post/requestBody/content/ap\
+                                          plication~1json/schema/properties/con\
+                                          fig/properties/experiment_engine/prop\
+                                          erties/config/properties/variables/pr\
+                                          operties/client_variables/items"
+                                  additionalProperties:
+                                    type: array
+                                    items:
+                                      $ref: "#/paths/~1projects~1%7Bproject_id%7D~1\
+                                        routers/post/requestBody/content/applic\
+                                        ation~1json/schema/properties/config/pr\
+                                        operties/experiment_engine/properties/c\
+                                        onfig/properties/variables/properties/c\
+                                        lient_variables/items"
+                                config:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      name:
+                                        type: string
+                                      required:
+                                        type: boolean
+                                      field:
+                                        type: string
+                                      field_source:
+                                        $ref: "#/paths/~1projects~1%7Bproject_id%7D\
+                                          ~1routers/post/requestBody/content/ap\
+                                          plication~1json/schema/properties/con\
+                                          fig/properties/rules/items/properties\
+                                          /conditions/items/properties/field_so\
+                                          urce"
+                    resource_request:
+                      type: object
+                      properties:
+                        min_replica:
+                          type: integer
+                        max_replica:
+                          type: integer
+                        cpu_request:
+                          type: string
+                        memory_request:
+                          type: string
+                    timeout:
+                      type: string
+                    log_config:
+                      type: object
+                      properties:
+                        result_logger_type:
+                          type: string
+                          enum:
+                            - nop
+                            - console
+                            - bigquery
+                            - kafka
+                          default: nop
+                        bigquery_config:
+                          type: object
+                          required:
+                            - table
+                            - service_account_secret
+                          properties:
+                            table:
+                              type: string
+                            service_account_secret:
+                              type: string
+                        kafka_config:
+                          type: object
+                          required:
+                            - brokers
+                            - topic
+                            - serialization_format
+                          properties:
+                            brokers:
+                              type: string
+                              description: Comma-separated list of host and port pairs that
+                                are the addresses of the Kafka brokers.
+                            topic:
+                              type: string
+                            serialization_format:
+                              type: string
+                              enum:
+                                - json
+                                - protobuf
+                    enricher:
+                      type: object
+                      required:
+                        - image
+                        - resource_request
+                        - endpoint
+                        - timeout
+                        - port
+                        - env
+                      properties:
+                        image:
+                          type: string
+                        resource_request:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/post\
+                            /requestBody/content/application~1json/schema/prope\
+                            rties/config/properties/resource_request"
+                        endpoint:
+                          type: string
+                        timeout:
+                          type: string
+                        port:
+                          type: integer
+                        env:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - name
+                            properties:
+                              name:
+                                type: string
+                              value:
+                                type: string
+                        service_account:
+                          type: string
+                          description: >
+                            (Optional) Name of the secret registered in the
+                            current MLP project that contains the Google service
+                            account JSON key. This secret will be mounted as a
+                            file inside the container and the environment
+                            variable GOOGLE_APPLICATION_CREDENTIALS will point
+                            to the service account file."
+                          example: secret-name-for-google-service-account
+                    ensembler:
+                      type: object
+                      required:
+                        - type
+                      properties:
+                        type:
+                          description: type of ensembler
+                          type: string
+                          enum:
+                            - standard
+                            - docker
+                        standard_config:
+                          description: ensembler config when ensembler type is standard
+                          type: object
+                          required:
+                            - experiment_mappings
+                          properties:
+                            experiment_mappings:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                  - experiment
+                                  - treatment
+                                  - route
+                                properties:
+                                  experiment:
+                                    description: experiment name from the configured
+                                      experiment engine
+                                    type: string
+                                    example: experiment-1
+                                  treatment:
+                                    description: treatment name of the experiment
+                                    type: string
+                                    example: treatment-1
+                                  route:
+                                    description: route id of the routes configured in the
+                                      router
+                                    type: string
+                                    example: route-1
+                        docker_config:
+                          description: ensembler config when ensembler type is docker
+                          type: object
+                          required:
+                            - image
+                            - resource_request
+                            - endpoint
+                            - timeout
+                            - port
+                            - env
+                          properties:
+                            image:
+                              type: string
+                            resource_request:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/\
+                                post/requestBody/content/application~1json/sche\
+                                ma/properties/config/properties/resource_reques\
+                                t"
+                            endpoint:
+                              type: string
+                            timeout:
+                              type: string
+                            port:
+                              type: integer
+                            env:
+                              type: array
+                              items:
+                                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1router\
+                                  s/post/requestBody/content/application~1json/\
+                                  schema/properties/config/properties/enricher/\
+                                  properties/env/items"
+                            service_account:
+                              type: string
+                              description: >
+                                (Optional) Name of the secret registered in the
+                                current MLP project that contains the Google
+                                service account JSON key. This secret will be
+                                mounted as a file inside the container and the
+                                environment variable
+                                GOOGLE_APPLICATION_CREDENTIALS will point to the
+                                service account file."
+                              example: secret-name-for-google-service-account
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/responses/\
+                  200/content/application~1json/schema/items"
+        "400":
+          description: Invalid project_id or router configuration
+        "500":
+          description: Unable to save configuration
+  "/projects/{project_id}/routers/{router_id}":
+    get:
+      tags:
+        - Router
+      summary: Get router belonging to project by ID
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project to retrieve routers from
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to be retrieved
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D/g\
+              et/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  updated_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  project:
+                    type: integer
+                  environment_name:
+                    type: string
+                  endpoint:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - deployed
+                      - undeployed
+                      - failed
+                      - pending
+                    default: pending
+                  config:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        readOnly: true
+                      created_at:
+                        type: string
+                        format: date-time
+                        readOnly: true
+                      updated_at:
+                        type: string
+                        format: date-time
+                        readOnly: true
+                      router:
+                        type: object
+                        properties:
+                          Router:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              name:
+                                type: string
+                              created_at:
+                                type: string
+                                format: date-time
+                                readOnly: true
+                              updated_at:
+                                type: string
+                                format: date-time
+                                readOnly: true
+                              project:
+                                type: integer
+                              environment_name:
+                                type: string
+                              endpoint:
+                                type: string
+                              status:
+                                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1router\
+                                  s~1%7Brouter_id%7D/get/responses/200/content/\
+                                  application~1json/schema/properties/status"
+                      version:
+                        type: integer
+                      status:
+                        type: string
+                        enum:
+                          - deployed
+                          - undeployed
+                          - failed
+                          - pending
+                        default: pending
+                      error:
+                        type: string
+                      image:
+                        type: string
+                      routes:
+                        type: array
+                        items:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7B\
+                            router_id%7D/put/requestBody/content/application~1j\
+                            son/schema/properties/config/properties/routes/item\
+                            s"
+                      default_route:
+                        type: string
+                      experiment_engine:
+                        type: object
+                        properties:
+                          type:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/ge\
+                              t/responses/200/content/application~1json/schema/\
+                              items/properties/config/properties/experiment_eng\
+                              ine/properties/type"
+                          config:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/ge\
+                              t/responses/200/content/application~1json/schema/\
+                              items/properties/config/properties/experiment_eng\
+                              ine/properties/config"
+                      resource_request:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Bro\
+                          uter_id%7D/put/requestBody/content/application~1json/\
+                          schema/properties/config/properties/resource_request"
+                      timeout:
+                        type: string
+                      log_config:
+                        type: object
+                        properties:
+                          log_level:
+                            type: string
+                            enum:
+                              - DEBUG
+                              - INFO
+                              - WARN
+                              - ERROR
+                          custom_metrics_enabled:
+                            type: boolean
+                          fiber_debug_log_enabled:
+                            type: boolean
+                          jaeger_enabled:
+                            type: boolean
+                          result_logger_type:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%\
+                              7Brouter_id%7D/put/requestBody/content/applicatio\
+                              n~1json/schema/properties/config/properties/log_c\
+                              onfig/properties/result_logger_type"
+                          bigquery_config:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%\
+                              7Brouter_id%7D/put/requestBody/content/applicatio\
+                              n~1json/schema/properties/config/properties/log_c\
+                              onfig/properties/bigquery_config"
+                          kafka_config:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%\
+                              7Brouter_id%7D/put/requestBody/content/applicatio\
+                              n~1json/schema/properties/config/properties/log_c\
+                              onfig/properties/kafka_config"
+                      enricher:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Bro\
+                          uter_id%7D/put/requestBody/content/application~1json/\
+                          schema/properties/config/properties/enricher"
+                      ensembler:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Bro\
+                          uter_id%7D/put/requestBody/content/application~1json/\
+                          schema/properties/config/properties/ensembler"
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: No router found
+    put:
+      tags:
+        - Router
+      summary: Update router
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project of the router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D/g\
+              et/parameters/0/schema"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to update
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D/g\
+              et/parameters/0/schema"
+          required: true
+      requestBody:
+        description: router configuration to save
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - environment_name
+                - name
+                - config
+              properties:
+                environment_name:
+                  type: string
+                name:
+                  type: string
+                config:
+                  type: object
+                  required:
+                    - routes
+                    - default_route_id
+                    - experiment_engine
+                    - timeout
+                    - log_config
+                  properties:
+                    routes:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - id
+                          - type
+                          - endpoint
+                          - timeout
+                        properties:
+                          id:
+                            type: string
+                          type:
+                            type: string
+                          endpoint:
+                            type: string
+                          timeout:
+                            type: string
+                    rules:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - conditions
+                          - routes
+                        properties:
+                          conditions:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - field_source
+                                - field
+                                - operator
+                                - values
+                              properties:
+                                field_source:
+                                  $ref: "#/paths/~1projects~1%7Bproject_id%7D~1rout\
+                                    ers/post/requestBody/content/application~1j\
+                                    son/schema/properties/config/properties/rul\
+                                    es/items/properties/conditions/items/proper\
+                                    ties/field_source"
+                                field:
+                                  type: string
+                                  description: >
+                                    If `field_source` is `header`, then `field`
+                                    should contain the name of the request
+                                    header, otherwise, if `field_source` is
+                                    `payload`, then `field` should be a valid
+                                    json path
+                                operator:
+                                  type: string
+                                  enum:
+                                    - in
+                                values:
+                                  type: array
+                                  items:
+                                    type: string
+                          routes:
+                            type: array
+                            description: List of IDs of the routes, that should be
+                              activated by this rule
+                            items:
+                              type: string
+                    default_route_id:
+                      type: string
+                    experiment_engine:
+                      type: object
+                      properties:
+                        type:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/\
+                            responses/200/content/application~1json/schema/item\
+                            s/properties/config/properties/experiment_engine/pr\
+                            operties/type"
+                        config:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/post\
+                            /requestBody/content/application~1json/schema/prope\
+                            rties/config/properties/experiment_engine/propertie\
+                            s/config"
+                    resource_request:
+                      type: object
+                      properties:
+                        min_replica:
+                          type: integer
+                        max_replica:
+                          type: integer
+                        cpu_request:
+                          type: string
+                        memory_request:
+                          type: string
+                    timeout:
+                      type: string
+                    log_config:
+                      type: object
+                      properties:
+                        result_logger_type:
+                          type: string
+                          enum:
+                            - nop
+                            - console
+                            - bigquery
+                            - kafka
+                          default: nop
+                        bigquery_config:
+                          type: object
+                          required:
+                            - table
+                            - service_account_secret
+                          properties:
+                            table:
+                              type: string
+                            service_account_secret:
+                              type: string
+                        kafka_config:
+                          type: object
+                          required:
+                            - brokers
+                            - topic
+                            - serialization_format
+                          properties:
+                            brokers:
+                              type: string
+                              description: Comma-separated list of host and port pairs that
+                                are the addresses of the Kafka brokers.
+                            topic:
+                              type: string
+                            serialization_format:
+                              type: string
+                              enum:
+                                - json
+                                - protobuf
+                    enricher:
+                      type: object
+                      required:
+                        - image
+                        - resource_request
+                        - endpoint
+                        - timeout
+                        - port
+                        - env
+                      properties:
+                        image:
+                          type: string
+                        resource_request:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7B\
+                            router_id%7D/put/requestBody/content/application~1j\
+                            son/schema/properties/config/properties/resource_re\
+                            quest"
+                        endpoint:
+                          type: string
+                        timeout:
+                          type: string
+                        port:
+                          type: integer
+                        env:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - name
+                            properties:
+                              name:
+                                type: string
+                              value:
+                                type: string
+                        service_account:
+                          type: string
+                          description: >
+                            (Optional) Name of the secret registered in the
+                            current MLP project that contains the Google service
+                            account JSON key. This secret will be mounted as a
+                            file inside the container and the environment
+                            variable GOOGLE_APPLICATION_CREDENTIALS will point
+                            to the service account file."
+                          example: secret-name-for-google-service-account
+                    ensembler:
+                      type: object
+                      required:
+                        - type
+                      properties:
+                        type:
+                          description: type of ensembler
+                          type: string
+                          enum:
+                            - standard
+                            - docker
+                        standard_config:
+                          description: ensembler config when ensembler type is standard
+                          type: object
+                          required:
+                            - experiment_mappings
+                          properties:
+                            experiment_mappings:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                  - experiment
+                                  - treatment
+                                  - route
+                                properties:
+                                  experiment:
+                                    description: experiment name from the configured
+                                      experiment engine
+                                    type: string
+                                    example: experiment-1
+                                  treatment:
+                                    description: treatment name of the experiment
+                                    type: string
+                                    example: treatment-1
+                                  route:
+                                    description: route id of the routes configured in the
+                                      router
+                                    type: string
+                                    example: route-1
+                        docker_config:
+                          description: ensembler config when ensembler type is docker
+                          type: object
+                          required:
+                            - image
+                            - resource_request
+                            - endpoint
+                            - timeout
+                            - port
+                            - env
+                          properties:
+                            image:
+                              type: string
+                            resource_request:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~\
+                                1%7Brouter_id%7D/put/requestBody/content/applic\
+                                ation~1json/schema/properties/config/properties\
+                                /resource_request"
+                            endpoint:
+                              type: string
+                            timeout:
+                              type: string
+                            port:
+                              type: integer
+                            env:
+                              type: array
+                              items:
+                                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1router\
+                                  s~1%7Brouter_id%7D/put/requestBody/content/ap\
+                                  plication~1json/schema/properties/config/prop\
+                                  erties/enricher/properties/env/items"
+                            service_account:
+                              type: string
+                              description: >
+                                (Optional) Name of the secret registered in the
+                                current MLP project that contains the Google
+                                service account JSON key. This secret will be
+                                mounted as a file inside the container and the
+                                environment variable
+                                GOOGLE_APPLICATION_CREDENTIALS will point to the
+                                service account file."
+                              example: secret-name-for-google-service-account
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%\
+                  7D/get/responses/200/content/application~1json/schema"
+        "400":
+          description: Invalid project_id, router_id or router configuration
+        "500":
+          description: Unable to save configuration
+    delete:
+      tags:
+        - Router
+      summary: Delete router
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project of the router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D/g\
+              et/parameters/0/schema"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to delete
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D/g\
+              et/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  router_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D/get/parameters/0/schema"
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: Router not found
+        "500":
+          description: Unable to delete router
+  "/projects/{project_id}/routers/{router_id}/deploy":
+    post:
+      tags:
+        - Router
+      summary: Deploy the current router configuration
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to be deployed
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              deploy/post/parameters/0/schema"
+          required: true
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  router_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1deploy/post/parameters/0/schema"
+                  version:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1deploy/post/parameters/0/schema"
+        "400":
+          description: Invalid project_id, router_id or deploy request
+        "404":
+          description: No router version found
+  "/projects/{project_id}/routers/{router_id}/undeploy":
+    post:
+      tags:
+        - Router
+      summary: Undeploy router configuration
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to undeploy
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              undeploy/post/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  router_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1undeploy/post/parameters/0/schema"
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: Router not found
+        "500":
+          description: Error undeploying router version
+  "/projects/{project_id}/routers/{router_id}/versions":
+    get:
+      tags:
+        - Router
+      summary: List router config versions
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project to retrieve routers from
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to be retrieved
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      readOnly: true
+                    created_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    updated_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    router:
+                      type: object
+                      properties:
+                        Router:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                              readOnly: true
+                            updated_at:
+                              type: string
+                              format: date-time
+                              readOnly: true
+                            project:
+                              type: integer
+                            environment_name:
+                              type: string
+                            endpoint:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                                - deployed
+                                - undeployed
+                                - failed
+                                - pending
+                              default: pending
+                    version:
+                      type: integer
+                    status:
+                      type: string
+                      enum:
+                        - deployed
+                        - undeployed
+                        - failed
+                        - pending
+                      default: pending
+                    error:
+                      type: string
+                    image:
+                      type: string
+                    routes:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - id
+                          - type
+                          - endpoint
+                          - timeout
+                        properties:
+                          id:
+                            type: string
+                          type:
+                            type: string
+                          endpoint:
+                            type: string
+                          timeout:
+                            type: string
+                    default_route:
+                      type: string
+                    experiment_engine:
+                      type: object
+                      properties:
+                        type:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/\
+                            responses/200/content/application~1json/schema/item\
+                            s/properties/config/properties/experiment_engine/pr\
+                            operties/type"
+                        config:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/\
+                            responses/200/content/application~1json/schema/item\
+                            s/properties/config/properties/experiment_engine/pr\
+                            operties/config"
+                    resource_request:
+                      type: object
+                      properties:
+                        min_replica:
+                          type: integer
+                        max_replica:
+                          type: integer
+                        cpu_request:
+                          type: string
+                        memory_request:
+                          type: string
+                    timeout:
+                      type: string
+                    log_config:
+                      type: object
+                      properties:
+                        log_level:
+                          type: string
+                          enum:
+                            - DEBUG
+                            - INFO
+                            - WARN
+                            - ERROR
+                        custom_metrics_enabled:
+                          type: boolean
+                        fiber_debug_log_enabled:
+                          type: boolean
+                        jaeger_enabled:
+                          type: boolean
+                        result_logger_type:
+                          type: string
+                          enum:
+                            - nop
+                            - console
+                            - bigquery
+                            - kafka
+                          default: nop
+                        bigquery_config:
+                          type: object
+                          required:
+                            - table
+                            - service_account_secret
+                          properties:
+                            table:
+                              type: string
+                            service_account_secret:
+                              type: string
+                        kafka_config:
+                          type: object
+                          required:
+                            - brokers
+                            - topic
+                            - serialization_format
+                          properties:
+                            brokers:
+                              type: string
+                              description: Comma-separated list of host and port pairs that
+                                are the addresses of the Kafka brokers.
+                            topic:
+                              type: string
+                            serialization_format:
+                              type: string
+                              enum:
+                                - json
+                                - protobuf
+                    enricher:
+                      type: object
+                      required:
+                        - image
+                        - resource_request
+                        - endpoint
+                        - timeout
+                        - port
+                        - env
+                      properties:
+                        image:
+                          type: string
+                        resource_request:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7B\
+                            router_id%7D~1versions/get/responses/200/content/ap\
+                            plication~1json/schema/items/properties/resource_re\
+                            quest"
+                        endpoint:
+                          type: string
+                        timeout:
+                          type: string
+                        port:
+                          type: integer
+                        env:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - name
+                            properties:
+                              name:
+                                type: string
+                              value:
+                                type: string
+                        service_account:
+                          type: string
+                          description: >
+                            (Optional) Name of the secret registered in the
+                            current MLP project that contains the Google service
+                            account JSON key. This secret will be mounted as a
+                            file inside the container and the environment
+                            variable GOOGLE_APPLICATION_CREDENTIALS will point
+                            to the service account file."
+                          example: secret-name-for-google-service-account
+                    ensembler:
+                      type: object
+                      required:
+                        - type
+                      properties:
+                        type:
+                          description: type of ensembler
+                          type: string
+                          enum:
+                            - standard
+                            - docker
+                        standard_config:
+                          description: ensembler config when ensembler type is standard
+                          type: object
+                          required:
+                            - experiment_mappings
+                          properties:
+                            experiment_mappings:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                  - experiment
+                                  - treatment
+                                  - route
+                                properties:
+                                  experiment:
+                                    description: experiment name from the configured
+                                      experiment engine
+                                    type: string
+                                    example: experiment-1
+                                  treatment:
+                                    description: treatment name of the experiment
+                                    type: string
+                                    example: treatment-1
+                                  route:
+                                    description: route id of the routes configured in the
+                                      router
+                                    type: string
+                                    example: route-1
+                        docker_config:
+                          description: ensembler config when ensembler type is docker
+                          type: object
+                          required:
+                            - image
+                            - resource_request
+                            - endpoint
+                            - timeout
+                            - port
+                            - env
+                          properties:
+                            image:
+                              type: string
+                            resource_request:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~\
+                                1%7Brouter_id%7D~1versions/get/responses/200/co\
+                                ntent/application~1json/schema/items/properties\
+                                /resource_request"
+                            endpoint:
+                              type: string
+                            timeout:
+                              type: string
+                            port:
+                              type: integer
+                            env:
+                              type: array
+                              items:
+                                $ref: "#/paths/~1projects~1%7Bproject_id%7D~1router\
+                                  s~1%7Brouter_id%7D~1versions/get/responses/20\
+                                  0/content/application~1json/schema/items/prop\
+                                  erties/enricher/properties/env/items"
+                            service_account:
+                              type: string
+                              description: >
+                                (Optional) Name of the secret registered in the
+                                current MLP project that contains the Google
+                                service account JSON key. This secret will be
+                                mounted as a file inside the container and the
+                                environment variable
+                                GOOGLE_APPLICATION_CREDENTIALS will point to the
+                                service account file."
+                              example: secret-name-for-google-service-account
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: No router versions found
+  "/projects/{project_id}/routers/{router_id}/versions/{version}":
+    get:
+      tags:
+        - Router
+      summary: Get specific router config version
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project to retrieve routers from
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to be retrieved
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: version
+          description: version of router configuration to be retrieved
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  created_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  updated_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  router:
+                    type: object
+                    properties:
+                      Router:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                          created_at:
+                            type: string
+                            format: date-time
+                            readOnly: true
+                          updated_at:
+                            type: string
+                            format: date-time
+                            readOnly: true
+                          project:
+                            type: integer
+                          environment_name:
+                            type: string
+                          endpoint:
+                            type: string
+                          status:
+                            type: string
+                            enum:
+                              - deployed
+                              - undeployed
+                              - failed
+                              - pending
+                            default: pending
+                  version:
+                    type: integer
+                  status:
+                    type: string
+                    enum:
+                      - deployed
+                      - undeployed
+                      - failed
+                      - pending
+                    default: pending
+                  error:
+                    type: string
+                  image:
+                    type: string
+                  routes:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - type
+                        - endpoint
+                        - timeout
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        endpoint:
+                          type: string
+                        timeout:
+                          type: string
+                  default_route:
+                    type: string
+                  experiment_engine:
+                    type: object
+                    properties:
+                      type:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/re\
+                          sponses/200/content/application~1json/schema/items/pr\
+                          operties/config/properties/experiment_engine/properti\
+                          es/type"
+                      config:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/get/re\
+                          sponses/200/content/application~1json/schema/items/pr\
+                          operties/config/properties/experiment_engine/properti\
+                          es/config"
+                  resource_request:
+                    type: object
+                    properties:
+                      min_replica:
+                        type: integer
+                      max_replica:
+                        type: integer
+                      cpu_request:
+                        type: string
+                      memory_request:
+                        type: string
+                  timeout:
+                    type: string
+                  log_config:
+                    type: object
+                    properties:
+                      log_level:
+                        type: string
+                        enum:
+                          - DEBUG
+                          - INFO
+                          - WARN
+                          - ERROR
+                      custom_metrics_enabled:
+                        type: boolean
+                      fiber_debug_log_enabled:
+                        type: boolean
+                      jaeger_enabled:
+                        type: boolean
+                      result_logger_type:
+                        type: string
+                        enum:
+                          - nop
+                          - console
+                          - bigquery
+                          - kafka
+                        default: nop
+                      bigquery_config:
+                        type: object
+                        required:
+                          - table
+                          - service_account_secret
+                        properties:
+                          table:
+                            type: string
+                          service_account_secret:
+                            type: string
+                      kafka_config:
+                        type: object
+                        required:
+                          - brokers
+                          - topic
+                          - serialization_format
+                        properties:
+                          brokers:
+                            type: string
+                            description: Comma-separated list of host and port pairs that
+                              are the addresses of the Kafka brokers.
+                          topic:
+                            type: string
+                          serialization_format:
+                            type: string
+                            enum:
+                              - json
+                              - protobuf
+                  enricher:
+                    type: object
+                    required:
+                      - image
+                      - resource_request
+                      - endpoint
+                      - timeout
+                      - port
+                      - env
+                    properties:
+                      image:
+                        type: string
+                      resource_request:
+                        $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Bro\
+                          uter_id%7D~1versions~1%7Bversion%7D/get/responses/200\
+                          /content/application~1json/schema/properties/resource\
+                          _request"
+                      endpoint:
+                        type: string
+                      timeout:
+                        type: string
+                      port:
+                        type: integer
+                      env:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - name
+                          properties:
+                            name:
+                              type: string
+                            value:
+                              type: string
+                      service_account:
+                        type: string
+                        description: >
+                          (Optional) Name of the secret registered in the
+                          current MLP project that contains the Google service
+                          account JSON key. This secret will be mounted as a
+                          file inside the container and the environment variable
+                          GOOGLE_APPLICATION_CREDENTIALS will point to the
+                          service account file."
+                        example: secret-name-for-google-service-account
+                  ensembler:
+                    type: object
+                    required:
+                      - type
+                    properties:
+                      type:
+                        description: type of ensembler
+                        type: string
+                        enum:
+                          - standard
+                          - docker
+                      standard_config:
+                        description: ensembler config when ensembler type is standard
+                        type: object
+                        required:
+                          - experiment_mappings
+                        properties:
+                          experiment_mappings:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - experiment
+                                - treatment
+                                - route
+                              properties:
+                                experiment:
+                                  description: experiment name from the configured
+                                    experiment engine
+                                  type: string
+                                  example: experiment-1
+                                treatment:
+                                  description: treatment name of the experiment
+                                  type: string
+                                  example: treatment-1
+                                route:
+                                  description: route id of the routes configured in the
+                                    router
+                                  type: string
+                                  example: route-1
+                      docker_config:
+                        description: ensembler config when ensembler type is docker
+                        type: object
+                        required:
+                          - image
+                          - resource_request
+                          - endpoint
+                          - timeout
+                          - port
+                          - env
+                        properties:
+                          image:
+                            type: string
+                          resource_request:
+                            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%\
+                              7Brouter_id%7D~1versions~1%7Bversion%7D/get/respo\
+                              nses/200/content/application~1json/schema/propert\
+                              ies/resource_request"
+                          endpoint:
+                            type: string
+                          timeout:
+                            type: string
+                          port:
+                            type: integer
+                          env:
+                            type: array
+                            items:
+                              $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~\
+                                1%7Brouter_id%7D~1versions~1%7Bversion%7D/get/r\
+                                esponses/200/content/application~1json/schema/p\
+                                roperties/enricher/properties/env/items"
+                          service_account:
+                            type: string
+                            description: >
+                              (Optional) Name of the secret registered in the
+                              current MLP project that contains the Google
+                              service account JSON key. This secret will be
+                              mounted as a file inside the container and the
+                              environment variable
+                              GOOGLE_APPLICATION_CREDENTIALS will point to the
+                              service account file."
+                            example: secret-name-for-google-service-account
+        "400":
+          description: Invalid project_id, router_id or version_id
+        "404":
+          description: No router version found
+    delete:
+      tags:
+        - Router
+      summary: Delete router version
+      parameters:
+        - in: path
+          name: project_id
+          description: project id of the project of the router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: version
+          description: version of router configuration to delete
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  router_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1versions~1%7Bversion%7D/get/parameters/0/schema"
+                  version:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1versions~1%7Bversion%7D/get/parameters/0/schema"
+        "400":
+          description: Invalid project_id, router_id or version
+        "404":
+          description: Router version not found
+        "500":
+          description: Unable to delete router version
+  "/projects/{project_id}/routers/{router_id}/versions/{version}/deploy":
+    post:
+      tags:
+        - Router
+      summary: Deploy specified version of router configuration
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to be deployed
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D~1deploy/post/parameters/0/schema"
+          required: true
+        - in: path
+          name: version
+          description: version of router configuration to be deployed
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D~1deploy/post/parameters/0/schema"
+          required: true
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  router_id:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1versions~1%7Bversion%7D~1deploy/post/parameters/0\
+                      /schema"
+                  version:
+                    $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter\
+                      _id%7D~1versions~1%7Bversion%7D~1deploy/post/parameters/0\
+                      /schema"
+        "400":
+          description: Invalid project_id, router_id, version_id or deploy request
+        "404":
+          description: No router version found
+  "/projects/{project_id}/routers/{router_id}/events":
+    get:
+      tags:
+        - Router
+      summary: Get deployment events associated with this router
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router to be deployed
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              events/get/parameters/0/schema"
+          required: true
+      responses:
+        "200":
+          description: Get events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      readOnly: true
+                    created_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    updated_at:
+                      type: string
+                      format: date-time
+                      readOnly: true
+                    version:
+                      type: integer
+                    event_type:
+                      type: string
+                      enum:
+                        - info
+                        - error
+                    stage:
+                      type: string
+                    message:
+                      type: string
+        "400":
+          description: Invalid project_id or router_id
+        "404":
+          description: No router version found
+  "/projects/{project_id}/routers/{router_id}/logs":
+    get:
+      tags:
+        - Logs
+      summary: List logs for a router, default to 'router' component type and the
+        currently deployed version
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              logs/get/parameters/0/schema"
+          required: true
+        - in: query
+          name: component_type
+          description: component type of the router to get the logs from
+          schema:
+            type: string
+            enum:
+              - router
+              - enricher
+              - ensembler
+          required: false
+        - in: query
+          name: container
+          description: container to get the logs from, default to 'user-container', the
+            default container name in Knative
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: since_time
+          description: RFC 3399 timestamp from which to retrieve the logs e.g.
+            2002-10-02T15:00:00Z. The logs retrieved will have timestamp after
+            (but not including) since_time
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: tail_lines
+          description: number of lines from the end of the logs to retrieve. If both
+            tail_lines and head_lines are set, tail_lines will be ignored
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: head_lines
+          description: number of lines from the start of the logs to retrieve. If both
+            tail_lines and head_lines are set, tail_lines will be ignored
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: previous
+          description: if true, return the logs from previous terminated container in all
+            pods, default to false
+          schema:
+            type: boolean
+          required: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: PodLog object contains a log item from a container in a pod
+                  properties:
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Log timestamp in RFC3339 format
+                      example: 2020-07-10T21:13:51Z
+                    environment:
+                      type: string
+                      description: Environment name of the pod running the container that
+                        produces this log
+                      example: staging
+                    namespace:
+                      type: string
+                      description: Kubernetes namespace where the pod running the container
+                        is created
+                      example: cartography
+                    pod_name:
+                      type: string
+                      description: Pod name running the container that produces this log
+                      example: nearby-turing-router-90-deployment-7b49b4bcb5-jlr7n
+                    container_name:
+                      type: string
+                      description: Container name that produces this log
+                      example: user-container
+                    text_payload:
+                      type: string
+                      description: Log in text format, either text_payload or json_payload
+                        will be set but not both
+                      example: Example log from a container
+                    json_payload:
+                      type: object
+                      description: Log in JSON format, either text_payload or json_payload
+                        will be set but not both
+                      example:
+                        level: info
+                        msg: Initializing Nop Result Logger
+                        router_version: test-1-1.integration-test
+                        ts: 1594386832.6632557
+        "400":
+          description: Invalid value for the router id or query strings
+        "500":
+          description: Failed to list pod logs due to internal error
+  "/projects/{project_id}/routers/{router_id}/versions/{version}/logs":
+    get:
+      tags:
+        - Logs
+      summary: List logs for a router with a specific version, default to 'router'
+        component type
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the router belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: router_id
+          description: id of the router
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers~1%7Brouter_id%7D~1\
+              versions~1%7Bversion%7D~1logs/get/parameters/0/schema"
+          required: true
+        - in: path
+          name: version
+          description: router version value to get the logs from
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: component_type
+          description: component type of the router to get the logs from
+          schema:
+            type: string
+            enum:
+              - router
+              - enricher
+              - ensembler
+          required: false
+        - in: query
+          name: container
+          description: container to get the logs from, default to 'user-container', the
+            default container name in Knative
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: since_time
+          description: RFC 3399 timestamp from which to retrieve the logs e.g.
+            2002-10-02T15:00:00Z
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: tail_lines
+          description: number of lines from the end of the logs to retrieve, this takes
+            priority over 'since_time'
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: previous
+          description: if true, return the logs from previous terminated container in all
+            pods, default to false
+          schema:
+            type: boolean
+          required: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: PodLog object contains a log item from a container in a pod
+                  properties:
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Log timestamp in RFC3339 format
+                      example: 2020-07-10T21:13:51Z
+                    environment:
+                      type: string
+                      description: Environment name of the pod running the container that
+                        produces this log
+                      example: staging
+                    namespace:
+                      type: string
+                      description: Kubernetes namespace where the pod running the container
+                        is created
+                      example: cartography
+                    pod_name:
+                      type: string
+                      description: Pod name running the container that produces this log
+                      example: nearby-turing-router-90-deployment-7b49b4bcb5-jlr7n
+                    container_name:
+                      type: string
+                      description: Container name that produces this log
+                      example: user-container
+                    text_payload:
+                      type: string
+                      description: Log in text format, either text_payload or json_payload
+                        will be set but not both
+                      example: Example log from a container
+                    json_payload:
+                      type: object
+                      description: Log in JSON format, either text_payload or json_payload
+                        will be set but not both
+                      example:
+                        level: info
+                        msg: Initializing Nop Result Logger
+                        router_version: test-1-1.integration-test
+                        ts: 1594386832.6632557
+        "400":
+          description: Invalid value for the router, version id or query strings
+        "500":
+          description: Failed to list pod logs due to internal error
+  "/projects/{project_id}/jobs/{job_id}/logs":
+    get:
+      tags:
+        - Logs
+      summary: List logs for an ensembling job, default to 'image_builder' component
+        type
+      parameters:
+        - in: path
+          name: project_id
+          description: id of the project that the ensembling job belongs to
+          schema:
+            $ref: "#/paths/~1projects/get/responses/200/content/application~1json/s\
+              chema/items/properties/id"
+          required: true
+        - in: path
+          name: job_id
+          description: id of the ensembling job
+          schema:
+            $ref: "#/paths/~1projects~1%7Bproject_id%7D~1jobs~1%7Bjob_id%7D~1logs/g\
+              et/parameters/0/schema"
+          required: true
+        - in: query
+          name: component_type
+          description: component type of the ensembling job to get the logs from
+          schema:
+            type: string
+            enum:
+              - image_builder
+              - driver
+              - executor
+          required: false
+        - in: query
+          name: since_time
+          description: RFC 3399 timestamp from which to retrieve the logs e.g.
+            2002-10-02T15:00:00Z. The logs retrieved will have timestamp after
+            (but not including) since_time
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: tail_lines
+          description: number of lines from the end of the logs to retrieve. If both
+            tail_lines and head_lines are set, tail_lines will be ignored
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: head_lines
+          description: number of lines from the start of the logs to retrieve. If both
+            tail_lines and head_lines are set, tail_lines will be ignored
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: previous
+          description: if true, return the logs from previous terminated container in all
+            pods, default to false
+          schema:
+            type: boolean
+          required: false
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: EnsemblingPodLog object contains a log item from a container
+                  in an ensembling pod
+                properties:
+                  environment:
+                    type: string
+                    description: Environment name of the pod running the container that
+                      produces this log
+                    example: staging
+                  namespace:
+                    type: string
+                    description: Kubernetes namespace where the pod running the container
+                      is created
+                    example: cartography
+                  logging_url:
+                    type: string
+                    description: A URL link to the dashboard but might not be present if a
+                      logging storage is not configured in your infrastructure.
+                    example: http://www.example.com/logging?pod_name=hello&namespace=world
+                  logs:
+                    type: array
+                    description: Logs from the ensembling job pod. Each element represents
+                      a line.
+                    items:
+                      type: object
+                      description: EnsemblingPodLog object contains a log item from a
+                        container in an ensembling pod
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                          description: Log timestamp in RFC3339 format
+                          example: 2020-07-10T21:13:51Z
+                        pod_name:
+                          type: string
+                          description: Pod name running the container that produces this log
+                          example: batch-7b49b4bcb5-jlr7n
+                        text_payload:
+                          type: string
+                          description: Log in text format, either text_payload or
+                            json_payload will be set but not both
+                          example: Example log from a container
+        "400":
+          description: Invalid value for the ensembling job id or query strings
+        "404":
+          description: Ensembling job not found
+        "500":
+          description: Failed to list pod logs due to internal error
+  /experiment-engines:
+    get:
+      tags:
+        - Experiments
+      summary: List the available experiment engines
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    client_selection_enabled:
+                      type: boolean
+                    experiment_selection_enabled:
+                      type: boolean
+        "500":
+          description: Error querying experiment engines
+  "/experiment-engines/{engine}/clients":
+    get:
+      tags:
+        - Experiments
+      summary: List the clients configured on the given experiment engine
+      parameters:
+        - in: path
+          name: engine
+          description: name of the experiment engine
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - username
+                  properties:
+                    id:
+                      type: string
+                    username:
+                      type: string
+                    passkey:
+                      type: string
+        "400":
+          description: Invalid engine name
+        "500":
+          description: Error querying experiment engine clients
+  "/experiment-engines/{engine}/experiments":
+    get:
+      tags:
+        - Experiments
+      summary: List the experiments configured on the given experiment engine
+      parameters:
+        - in: path
+          name: engine
+          description: name of the experiment engine
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: client_id
+          description: internal (unique) id of the client to filter experiments by
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - name
+                    - client_id
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    client_id:
+                      type: string
+                    variants:
+                      type: array
+                      description: List of variants in the experiment
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: control
+        "400":
+          description: Invalid engine name
+        "500":
+          description: Error querying experiments for the given experiment engine
+  "/experiment-engines/{engine}/variables":
+    get:
+      tags:
+        - Experiments
+      summary: List the variables configured for the given client and/or experiment(s)
+      parameters:
+        - in: path
+          name: engine
+          description: name of the experiment engine
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: client_id
+          description: internal (unique) id of the client.
+          schema:
+            type: string
+        - in: query
+          name: experiment_id
+          description: comma-separated internal (unique) ids of the experiments.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client_variables:
+                    description: list of variables defined for the client
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        required:
+                          type: boolean
+                        type:
+                          type: string
+                          enum:
+                            - unsupported
+                            - unit
+                            - filter
+                  experiment_variables:
+                    description: map of experiment id to its variables
+                    type: object
+                    properties:
+                      default:
+                        type: array
+                        items:
+                          $ref: "#/paths/~1experiment-engines~1%7Bengine%7D~1variab\
+                            les/get/responses/200/content/application~1json/sch\
+                            ema/properties/client_variables/items"
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: "#/paths/~1experiment-engines~1%7Bengine%7D~1variable\
+                          s/get/responses/200/content/application~1json/schema/\
+                          properties/client_variables/items"
+                  config:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        required:
+                          type: boolean
+                        field:
+                          type: string
+                        field_source:
+                          $ref: "#/paths/~1projects~1%7Bproject_id%7D~1routers/post\
+                            /requestBody/content/application~1json/schema/prope\
+                            rties/config/properties/rules/items/properties/cond\
+                            itions/items/properties/field_source"
+        "400":
+          description: Invalid engine name, client_id or experiment_id(s)
+        "500":
+          description: Error querying variables for the given client / experiment(s)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
