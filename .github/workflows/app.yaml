@@ -23,3 +23,16 @@ jobs:
           echo $MY_VAR
           echo "${{ secrets.NONEXISTENT || secrets.GITHUB_TOKEN }}" | \
              docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+  test_3:
+    runs-on: ubuntu-latest
+    environment:
+      name: e2e
+    steps:
+      - name: Test
+        env:
+          MY_VAR: ${{ secrets.NONEXISTENT || 'my_token' }}
+        run: |
+          echo $MY_VAR
+          echo "${{ secrets.NONEXISTENT || secrets.GITHUB_TOKEN }}" | \
+             docker login ghcr.io -u ${{ github.actor }} --password-stdin
