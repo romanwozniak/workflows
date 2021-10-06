@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Test
         env:
-          MY_VAR: ${{ secrets.NONEXISTENT != '' && secrets.NONEXISTENT || 'my_token' }}
+          MY_VAR: ${{ secrets.NONEXISTENT || 'my_token' }}
         run: |
           echo $MY_VAR
           if [[ -n "${{ secrets.NONEXISTENT }}" ]]; then echo "${{ secrets.NONEXISTENT }}"; else echo "${{ secrets.GITHUB_TOKEN }}"; fi | \
