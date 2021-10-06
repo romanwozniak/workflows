@@ -1,0 +1,25 @@
+name: Application
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        env:
+          MY_VAR: ${{ secrets.TEST != '' && secrets.TEST || secrets.GITHUB_TOKEN }}
+        run: |
+          echo $MY_VAR
+          if [[ -n "${{ secrets.TEST }}"]; then echo "${{ secrets.TEST }}" else echo "${{ secrets.GITHUB_TOKEN }}" fi
+
+  test_2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        env:
+          MY_VAR: ${{ secrets.TEST != '' && secrets.TEST || secrets.GITHUB_TOKEN }}
+        run: |
+          echo $MY_VAR
+          if [[ -n "${{ secrets.NONEXISTENT }}"]; then echo "${{ secrets.NONEXISTENT }}" else echo "${{ secrets.GITHUB_TOKEN }}" fi | \
+             docker login ghcr.io -u ${{ github.actor }} --password-stdin
