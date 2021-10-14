@@ -52,7 +52,7 @@ jobs:
           docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
 
       - uses: azure/setup-helm@v1
-        with:
+#        with:
 #          version: 'v2.17.0'
 
       - run: |
