@@ -78,7 +78,7 @@ jobs:
       - uses: RichiCoder1/kube-forward-action@v0.1.4
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
-          targetRef: mlp
+          targetRef: svc/mlp
           port: 8080
 
       - run: |
