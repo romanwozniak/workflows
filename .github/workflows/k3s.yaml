@@ -51,6 +51,20 @@ jobs:
           docker push localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
           docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
 
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'v2.17.0'
+
       - run: |
           helm version
+
+      - uses: actions/checkout@v2
+        with:
+          repository: gojek/mlp
+          token: ${{ secrets.GH_PAT }}
+          path: mlp
+
+      - run: |
+          helm install mlp ./mlp/chart -f mlp.helm-values.yaml --wait
+
 
