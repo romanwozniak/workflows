@@ -1,7 +1,6 @@
 name: k3s
 
-on:
-  - push:
+on: [push]
 
 jobs:
   e2e:

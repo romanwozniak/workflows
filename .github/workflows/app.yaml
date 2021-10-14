@@ -1,6 +1,6 @@
 name: Application
 
-on: []
+on: [workflow_dispatch]
 
 jobs:
   test:
