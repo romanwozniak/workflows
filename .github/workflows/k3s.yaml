@@ -36,22 +36,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - run: |
-          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-api:${{ env.TURING_VERSION }}
-          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
+#      - run: |
+#          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-api:${{ env.TURING_VERSION }}
+#          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
+#
+#          docker tag \
+#            ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-api:${{ env.TURING_VERSION }} \
+#            localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
+#
+#          docker tag \
+#            ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }} \
+#            localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
+#
+#          docker push localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
+#          docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
 
-          docker tag \
-            ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-api:${{ env.TURING_VERSION }} \
-            localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
-
-          docker tag \
-            ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }} \
-            localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
-
-          docker push localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
-          docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
-
-      - uses: azure/setup-helm@v1
+#      - uses: azure/setup-helm@v1
 #        with:
 #          version: 'v2.17.0'
 
@@ -66,7 +66,7 @@ jobs:
           path: mlp
 
       - run: |
-          helm install mlp ./mlp/charts/mlp \
+          helm install mlp ./mlp/chart \
             --wait \
             --set mlp.image.tag=v1.1.0-alpha
             --values mlp.helm-values.yaml
