@@ -61,14 +61,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: gojek/mlp
-          ref: v1.1.0-alpha
+          ref: v1.4.14
           token: ${{ secrets.GH_PAT }}
           path: mlp
 
       - run: |
-          helm install mlp ./mlp/chart \
+          helm install mlp ./mlp/charts/mlp \
             --wait \
-            --set mlp.image.tag=v1.1.0-alpha
+            --set mlp.image.tag=v1.4.14 \
             --values mlp.helm-values.yaml
 
       - run: |
