@@ -65,6 +65,14 @@ jobs:
           path: mlp
 
       - run: |
-          helm install mlp ./mlp/charts/mlp -f mlp.helm-values.yaml --wait
+          helm install mlp ./mlp/charts/mlp \
+            --wait \
+            --set mlp.image.tag=v1.4.14
+            --values mlp.helm-values.yaml
+
+      - run: |
+          kubectl get services
+          kubectl get services
+
 
 
