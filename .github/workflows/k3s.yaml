@@ -75,5 +75,15 @@ jobs:
           kubectl get services
           kubectl get pods
 
+      - uses: RichiCoder1/kube-forward-action@v0.1.4
+        with:
+          kubeconfig: ${{ env.KUBECONFIG }}
+          targetRef: mlp
+          port: 8080
+
+      - run: |
+          curl localhost:8080/v1/projects
+
+
 
 
