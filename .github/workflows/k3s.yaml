@@ -2,6 +2,10 @@ name: k3s
 
 on: [push]
 
+env:
+  REGISTRY: ghcr.io
+  TURING_VERSION: 0.0.0-build.1-164b88c
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -24,4 +28,26 @@ jobs:
 
       - run: |
           kubectl get nodes
+
+      - name: Log in to the GH Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - run: |
+          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-api:${{ env.TURING_VERSION }}
+          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
+
+          docker tag \
+            ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-api:${{ env.TURING_VERSION }} \
+            localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
+
+          docker tag \
+            ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }} \
+            localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
+
+          docker push localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
+          docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
 
