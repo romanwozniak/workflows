@@ -51,3 +51,6 @@ jobs:
           docker push localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
           docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
 
+      - run: |
+          helm version
+
