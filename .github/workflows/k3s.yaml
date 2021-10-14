@@ -65,10 +65,6 @@ jobs:
           path: mlp
 
       - run: |
-          echo $(pwd)
-          echo $ENV
-          echo ${{ env.GITHUB_WORKSPACE }}
-          ls -l ./
-          helm install mlp ./mlp/chart -f mlp.helm-values.yaml --wait
+          helm install mlp ./mlp/charts/mlp -f mlp.helm-values.yaml --wait
 
 
