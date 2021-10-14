@@ -79,7 +79,8 @@ jobs:
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
           targetRef: svc/mlp
-          port: 8080
+          targetPort: 8080
+          port: 8081
 
       - run: |
           curl localhost:8080/v1/projects
