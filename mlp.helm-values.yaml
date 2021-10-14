@@ -11,7 +11,7 @@ mlp:
     limits:
       memory: 128Mi
   encryption:
-    key: password
+    key: efwefwefwef
 
 postgresql:
   resources:
