@@ -1,0 +1,28 @@
+name: k3s
+
+on:
+  - push:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup k3s cluster
+        uses: debianmaster/actions-k3s@master
+        id: k3s
+        with:
+          version: v1.21.2-k3s1
+
+      - run: |
+          kubectl get nodes
+
