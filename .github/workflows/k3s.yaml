@@ -62,9 +62,13 @@ jobs:
         with:
           repository: gojek/mlp
           token: ${{ secrets.GH_PAT }}
-#          path: mlp
+          path: mlp
 
       - run: |
+          echo $(pwd)
+          echo $ENV
+          echo ${{ GITHUB_WORKSPACE }}
+          ls -l ./
           helm install mlp ./mlp/chart -f mlp.helm-values.yaml --wait
 
 
