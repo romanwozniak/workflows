@@ -21,6 +21,7 @@ jobs:
         uses: AbsaOSS/k3d-action@v1.5.0
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
+          use-default-registry: true
           args: >-
             --agents 1
             --no-lb
@@ -37,9 +38,11 @@ jobs:
           docker pull ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
           docker tag \
             ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
-            local.registry/mlp:${{ env.MLP_VERSION }}
+            registry.localhost:5000/mlp:${{ env.MLP_VERSION }}
 
-          k3d image import local.registry/mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
+          docker push registry.localhost:5000/mlp:${{ env.MLP_VERSION }}
+
+#          k3d image import local.registry/mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
 #          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
 #
 #          docker tag \
@@ -67,13 +70,13 @@ jobs:
       - run: |
           helm install mlp ./mlp/charts/mlp \
             --dry-run \
-            --set mlp.image.registry=local.registry \
+            --set mlp.image.registry=registry.localhost:5000 \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
           helm install mlp ./mlp/charts/mlp \
-            --set mlp.image.registry=local.registry \
+            --set mlp.image.registry=registry.localhost:5000 \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
@@ -87,14 +90,9 @@ jobs:
           kubectl get services
           kubectl get pods
 
-      - uses: RichiCoder1/kube-forward-action@v0.1.4
-        with:
-          kubeconfig: ${{ env.KUBECONFIG }}
-          targetRef: svc/mlp
-          targetPort: 8080
-          port: 8081
-
       - run: |
+          kubectl port-forward svc/mlp 8081:8080
+
           curl -v localhost:8081/v1/projects
 
 
