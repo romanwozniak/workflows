@@ -66,6 +66,13 @@ jobs:
 
       - run: |
           helm install mlp ./mlp/charts/mlp \
+            --dry-run \
+            --set mlp.image.registry= \
+            --set mlp.image.repository=mlp \
+            --set mlp.image.tag=${{ env.MLP_VERSION }} \
+            --values mlp.helm-values.yaml
+
+          helm install mlp ./mlp/charts/mlp \
             --set mlp.image.registry= \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
