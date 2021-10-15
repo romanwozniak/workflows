@@ -1,6 +1,6 @@
 mlp:
   image:
-    registry: ghcr.io
+    registry: ""
     repository: gojek/mlp
     tag: v1.1.0-alpha
   environment: dev
