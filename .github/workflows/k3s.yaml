@@ -74,7 +74,7 @@ jobs:
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
-          workloads: "svc/mlp"
+          workloads: "deployment/mlp"
 
       - run: |
           kubectl get services
