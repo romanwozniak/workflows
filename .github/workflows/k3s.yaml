@@ -66,6 +66,7 @@ jobs:
 
       - run: |
           helm install mlp ./mlp/charts/mlp \
+            --wait \
             --set mlp.image.registry= \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
@@ -74,7 +75,7 @@ jobs:
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
           workloads: "deployment/mlp"
-          restarts: 10
+          max-restarts: 10
 
       - run: |
           kubectl get services
