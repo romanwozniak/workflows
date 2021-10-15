@@ -4,6 +4,7 @@ on: [push]
 
 env:
   REGISTRY: ghcr.io
+  CLUSTER_NAME: turing-e2e
   TURING_VERSION: 0.0.0-build.1-164b88c
   MLP_VERSION: v1.4.14
 
@@ -11,21 +12,18 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
 
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-
     steps:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Setup k3s cluster
-        uses: debianmaster/actions-k3s@master
-        id: k3s
+      - name: "Setup local k8s cluster"
+        id: single-cluster
         with:
-          version: v1.21.2-k3s1
+          cluster-name: ${{ env.CLUSTER_NAME }}
+          args: >-
+            --agents 3
+            --no-lb
+            --k3s-server-arg "--no-deploy=traefik,servicelb,metrics-server"
 
       - name: Log in to the GH Container Registry
         uses: docker/login-action@v1
@@ -38,9 +36,9 @@ jobs:
           docker pull ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
           docker tag \
             ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
-            localhost:5000/mlp:${{ env.MLP_VERSION }}
+            mlp:${{ env.MLP_VERSION }}
 
-          docker push localhost:5000/mlp:${{ env.MLP_VERSION }}
+          k3d image import mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
 #          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
 #
 #          docker tag \
@@ -67,7 +65,7 @@ jobs:
 
       - run: |
           helm install mlp ./mlp/charts/mlp \
-            --set mlp.image.registry=localhost:5000 \
+            --set mlp.image.registry= \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
@@ -75,6 +73,7 @@ jobs:
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
           workloads: "deployment/mlp"
+          restarts: 10
 
       - run: |
           kubectl get services
