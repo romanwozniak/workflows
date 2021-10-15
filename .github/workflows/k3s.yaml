@@ -22,7 +22,7 @@ jobs:
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
           args: >-
-            --agents 3
+            --agents 1
             --no-lb
             --k3s-server-arg "--no-deploy=traefik,servicelb,metrics-server"
 
@@ -66,7 +66,7 @@ jobs:
 
       - run: |
           helm install mlp ./mlp/charts/mlp \
-            --wait \
+#            --wait \
             --set mlp.image.registry= \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
