@@ -61,7 +61,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: gojek/mlp
-          ref: v1.4.14
+          ref: ${{ env.MLP_VERSION }}
           token: ${{ secrets.GH_PAT }}
           path: mlp
 
@@ -69,12 +69,12 @@ jobs:
           helm install mlp ./mlp/charts/mlp \
             --set mlp.image.registry=localhost:5000 \
             --set mlp.image.repository=mlp \
-            --set mlp.image.tag=v1.4.14 \
+            --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
-          workloads: ""
+          workloads: "svc/mlp"
 
       - run: |
           kubectl get services
