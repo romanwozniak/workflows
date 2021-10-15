@@ -37,9 +37,9 @@ jobs:
           docker pull ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
           docker tag \
             ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
-            mlp:${{ env.MLP_VERSION }}
+            local.registry/mlp:${{ env.MLP_VERSION }}
 
-          k3d image import mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
+          k3d image import local.registry/mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
 #          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
 #
 #          docker tag \
@@ -67,13 +67,13 @@ jobs:
       - run: |
           helm install mlp ./mlp/charts/mlp \
             --dry-run \
-            --set mlp.image.registry= \
+            --set mlp.image.registry=local.registry \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
           helm install mlp ./mlp/charts/mlp \
-            --set mlp.image.registry= \
+            --set mlp.image.registry=local.registry \
             --set mlp.image.repository=mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
@@ -81,7 +81,7 @@ jobs:
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
           workloads: "deployment/mlp"
-          max-restarts: 10
+          max-restarts: 3
 
       - run: |
           kubectl get services
