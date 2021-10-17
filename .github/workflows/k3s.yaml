@@ -36,7 +36,7 @@ jobs:
 
           ls -l ./
 
-          istioctl install -f istio.minimal-operator.yaml
+          istioctl install -f istio-minimal-operator.yaml
 
       - name: Log in to the GH Container Registry
         uses: docker/login-action@v1
