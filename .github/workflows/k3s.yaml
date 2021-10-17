@@ -24,7 +24,7 @@ jobs:
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
           args: >-
-            --server 1
+            --servers 1
             --agents 2
             --k3s-server-arg "--no-deploy=traefik,servicelb,metrics-server"
 
