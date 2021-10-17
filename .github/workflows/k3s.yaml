@@ -4,14 +4,15 @@ on: [push]
 
 env:
   REGISTRY: ghcr.io
-  CLUSTER_NAME: turing-e2e
   TURING_VERSION: 0.0.0-build.1-164b88c
   MLP_VERSION: v1.4.14
+  LOCAL_REGISTRY: registry.localhost:5000
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-
+    env:
+      CLUSTER_NAME: turing-e2e
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -21,7 +22,6 @@ jobs:
         uses: AbsaOSS/k3d-action@v1.5.0
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
-          use-default-registry: true
           args: >-
             --agents 1
             --no-lb
@@ -38,9 +38,12 @@ jobs:
           docker pull ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
           docker tag \
             ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
-            registry.localhost:5000/mlp:${{ env.MLP_VERSION }}
+            ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
 
-          docker push registry.localhost:5000/mlp:${{ env.MLP_VERSION }}
+          k3d image import ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --keep-tarball \
+            --verbose
 
 #          k3d image import local.registry/mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
 #          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
@@ -56,6 +59,11 @@ jobs:
 #          docker push localhost:5000/turing/turing-api:${{ env.TURING_VERSION }}
 #          docker push localhost:5000/turing/turing-router:${{ env.TURING_VERSION }}
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mlp-${{ env.MLP_VERSION }}.tar
+          path: mlp-${{ env.MLP_VERSION }}.tar
+
 #      - uses: azure/setup-helm@v1
 #        with:
 #          version: 'v2.17.0'
@@ -70,14 +78,14 @@ jobs:
       - run: |
           helm install mlp ./mlp/charts/mlp \
             --dry-run \
-            --set mlp.image.registry=registry.localhost:5000 \
-            --set mlp.image.repository=mlp \
+            --set mlp.image.registry=${{ env.LOCAL_REGISTRY }} \
+            --set mlp.image.repository=gojek/mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
           helm install mlp ./mlp/charts/mlp \
-            --set mlp.image.registry=registry.localhost:5000 \
-            --set mlp.image.repository=mlp \
+            --set mlp.image.registry=${{ env.LOCAL_REGISTRY }} \
+            --set mlp.image.repository=gojek/mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
@@ -92,7 +100,7 @@ jobs:
 
       - run: |
           kubectl port-forward svc/mlp 8081:8080 1>&2 &
-          sleep 10
+          sleep 5
 
           curl -v localhost:8081/v1/projects
 
