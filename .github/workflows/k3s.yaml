@@ -42,8 +42,11 @@ jobs:
 
           k3d image import ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
             --cluster ${{ env.CLUSTER_NAME }} \
-            --keep-tarball \
             --verbose
+
+          docker image save \
+            --output mlp-${{ env.MLP_VERSION }}.tar \
+            ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
 
 #          k3d image import local.registry/mlp:${{ env.MLP_VERSION }} -c ${{ env.CLUSTER_NAME }} --verbose
 #          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/turing/turing-router:${{ env.TURING_VERSION }}
@@ -104,6 +107,20 @@ jobs:
 
           curl -v localhost:8081/v1/projects
 
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - e2e
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: mlp-${{ env.MLP_VERSION }}.tar
+          path: ./
+
+      - run: |
+          docker image load --input mlp-${{ env.MLP_VERSION }}.tar
+
+          docker image ls
 
 
 
