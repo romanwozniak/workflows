@@ -24,8 +24,8 @@ jobs:
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
           args: >-
-            --agents 1
-            --no-lb
+            --server 1
+            --agents 2
             --k3s-server-arg "--no-deploy=traefik,servicelb,metrics-server"
 
       - name: "Install Istio"
