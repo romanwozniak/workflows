@@ -94,15 +94,8 @@ jobs:
           kubectl get pods
 
       - run: |
-          docker ps
-
-          export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
-
-          echo $INGRESS_HOST $INGRESS_PORT
-
           timeout --foreground 45 bash -c \
-            "until curl -v -s --fail http://127.0.0.1/v1/projects; do sleep 2; done"
+            "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
 
   publish:
     runs-on: ubuntu-latest
