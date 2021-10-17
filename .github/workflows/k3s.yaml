@@ -77,13 +77,6 @@ jobs:
 
       - run: |
           helm install mlp ./mlp/charts/mlp \
-            --dry-run \
-            --set mlp.image.registry=${{ env.LOCAL_REGISTRY }} \
-            --set mlp.image.repository=gojek/mlp \
-            --set mlp.image.tag=${{ env.MLP_VERSION }} \
-            --values mlp.helm-values.yaml
-
-          helm install mlp ./mlp/charts/mlp \
             --set mlp.image.registry=${{ env.LOCAL_REGISTRY }} \
             --set mlp.image.repository=gojek/mlp \
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
@@ -103,8 +96,13 @@ jobs:
       - run: |
           docker ps
 
+          export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+
+          echo $INGRESS_HOST $INGRESS_PORT
+
           timeout --foreground 45 bash -c \
-            "until curl -v -s --fail http://127.0.0.1:9080/v1/projects; do sleep 2; done"
+            "until curl -v -s --fail http://$INGRESS_HOST:$INGRESS_PORT/v1/projects; do sleep 2; done"
 
   publish:
     runs-on: ubuntu-latest
