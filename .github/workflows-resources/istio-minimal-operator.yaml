@@ -18,5 +18,3 @@ spec:
     ingressGateways:
       - name: istio-ingressgateway
         enabled: true
-      - name: cluster-local-gateway
-        enabled: true
