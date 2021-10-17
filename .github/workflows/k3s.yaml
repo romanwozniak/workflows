@@ -86,7 +86,7 @@ jobs:
             --set mlp.image.tag=${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
-          kubectl apply -f ./github/workflows-resources/mlp.ingress.yaml
+          kubectl apply -f .github/workflows-resources/mlp.ingress.yaml
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
