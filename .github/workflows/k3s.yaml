@@ -33,6 +33,9 @@ jobs:
         run: |
           curl -L https://istio.io/downloadIstio | sh -
           export PATH=$PWD/istio-${{ env.ISTIO_VERSION }}/bin:$PATH
+
+          ls -l ./
+
           istioctl install -f istio.minimal-operator.yaml
 
       - name: Log in to the GH Container Registry
