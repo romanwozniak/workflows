@@ -34,7 +34,7 @@ jobs:
         run: |
           curl -L https://istio.io/downloadIstio | sh -
           export PATH=$PWD/istio-${{ env.ISTIO_VERSION }}/bin:$PATH
-          echo y | istioctl install --set profile=default
+          echo y | istioctl install --file istio-minimal-operator.yaml
 
           kubectl label namespace default istio-injection=enabled
 
