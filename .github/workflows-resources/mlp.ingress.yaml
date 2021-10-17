@@ -6,8 +6,8 @@ metadata:
   name: mlp
 spec:
   rules:
-  - host: mlp.127.0.0.1.nip.io
-    http:
+#  - host: mlp.127.0.0.1.nip.io
+  - http:
       paths:
       - path: /*
         pathType: Prefix

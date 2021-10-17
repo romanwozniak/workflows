@@ -26,6 +26,7 @@ jobs:
           args: >-
             --servers 1
             --agents 2
+            --port 9080:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,servicelb,metrics-server"
 
       - name: "Install Istio"
@@ -98,8 +99,10 @@ jobs:
           kubectl get pods
 
       - run: |
+          docker ps
+
           timeout --foreground 45 bash -c \
-            "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
+            "until curl -v -s --fail http://127.0.0.1:9080/v1/projects; do sleep 2; done"
 
   publish:
     runs-on: ubuntu-latest
