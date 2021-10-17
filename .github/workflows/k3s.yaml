@@ -31,7 +31,7 @@ jobs:
       - name: "Install Istio"
         working-directory: ./github/workflows-resources
         run: |
-          curl -L https://istio.io/downloadIstio | sh -
+          curl -v -L https://istio.io/downloadIstio | ISTIO_VERSION=${{ env.ISTIO_VERSION }} TARGET_ARCH=x86_64 sh -
           export PATH=$PWD/istio-${{ env.ISTIO_VERSION }}/bin:$PATH
 
           ls -l ./
