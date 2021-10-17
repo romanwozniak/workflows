@@ -26,8 +26,8 @@ jobs:
           args: >-
             --servers 1
             --agents 2
-            --port 9080:80@loadbalancer
-            --k3s-server-arg "--no-deploy=traefik,servicelb,metrics-server"
+            --port 80:80@loadbalancer
+            --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
       - name: "Install Istio"
         working-directory: .github/workflows-resources
@@ -102,7 +102,7 @@ jobs:
           echo $INGRESS_HOST $INGRESS_PORT
 
           timeout --foreground 45 bash -c \
-            "until curl -v -s --fail http://$INGRESS_HOST:$INGRESS_PORT/v1/projects; do sleep 2; done"
+            "until curl -v -s --fail http://127.0.0.1/v1/projects; do sleep 2; done"
 
   publish:
     runs-on: ubuntu-latest
