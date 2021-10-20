@@ -9,7 +9,7 @@ spec:
       name: hello-world
     spec:
       containers:
-        - image: registry.localhost:5000/knative-samples/helloworld-go
+        - image: gcr.io/knative-samples/helloworld-go
           ports:
             - containerPort: 8080
           env:
