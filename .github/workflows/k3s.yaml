@@ -54,6 +54,9 @@ jobs:
           kubectl apply \
             -f https://github.com/knative/serving/releases/download/v${{ env.KNATIVE_VERSION }}/serving-default-domain.yaml
 
+          kubectl -n knative-serving patch configmap/config-domain \
+            --type merge -p '{"data":{"127.0.0.1.nip.io":""}}'
+
           kubectl -n knative-serving patch configmap/config-deployment \
             --type merge -p '{"data":{"registriesSkippingTagResolving": "${{ env.LOCAL_REGISTRY }}"}}'
 
@@ -115,7 +118,7 @@ jobs:
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
-          workloads: "deployment/hello-world-deployment"
+          workloads: "deployment/mlp,deployment/hello-world-deployment"
           max-restarts: 3
 
       - run: |
