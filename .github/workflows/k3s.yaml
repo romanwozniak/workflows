@@ -53,6 +53,11 @@ jobs:
           kubectl apply \
             -f https://github.com/knative/serving/releases/download/v${{ env.KNATIVE_VERSION }}/serving-default-domain.yaml
 
+      - name: "Deploy 'Hello World' Knative service"
+        working-directory: .github/workflows-resources
+        run: |
+          kubectl apply \
+            -f hello.knative.yaml
 
       - name: Log in to the GH Container Registry
         uses: docker/login-action@v1
@@ -102,7 +107,7 @@ jobs:
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
-          workloads: "deployment/mlp"
+          workloads: "deployment/mlp,svc/hello"
           max-restarts: 3
 
       - run: |
@@ -110,6 +115,8 @@ jobs:
           kubectl get pods
 
       - run: |
+          curl http://hello.default.127.0.0.1.nip.io
+
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
 
