@@ -74,7 +74,7 @@ jobs:
 
           docker pull gcr.io/knative-samples/helloworld-go
           docker tag \
-            gcr.io/knative-samples/helloworld-go
+            gcr.io/knative-samples/helloworld-go \
             ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go
           k3d image import ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go \
             --cluster ${{ env.CLUSTER_NAME }}
