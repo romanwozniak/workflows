@@ -73,7 +73,9 @@ jobs:
             ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
 
           docker pull gcr.io/knative-samples/helloworld-go
-          docker tag ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go
+          docker tag \
+            gcr.io/knative-samples/helloworld-go
+            ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go
           k3d image import ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go \
             --cluster ${{ env.CLUSTER_NAME }}
 
