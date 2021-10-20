@@ -107,7 +107,7 @@ jobs:
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
-          workloads: "deployment/mlp,deployment/hello-default-0-deployment"
+          workloads: "deployment/mlp,deployment/hello-world-deployment"
           max-restarts: 3
 
       - run: |
