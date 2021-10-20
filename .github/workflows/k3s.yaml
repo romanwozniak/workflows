@@ -72,9 +72,13 @@ jobs:
             ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
             ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
 
+          docker pull gcr.io/knative-samples/helloworld-go
+          docker tag ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go
+          k3d image import ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go \
+            --cluster ${{ env.CLUSTER_NAME }}
+
           k3d image import ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
-            --cluster ${{ env.CLUSTER_NAME }} \
-            --verbose
+            --cluster ${{ env.CLUSTER_NAME }}
 
           docker image save \
             --output mlp-${{ env.MLP_VERSION }}.tar \
@@ -115,7 +119,7 @@ jobs:
           kubectl get pods
 
       - run: |
-          curl http://hello.default.127.0.0.1.nip.io
+          curl -v http://hello.default.127.0.0.1.nip.io
 
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
