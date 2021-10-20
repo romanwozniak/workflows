@@ -31,12 +31,12 @@ jobs:
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
-#      - name: "Install Istio"
-#        working-directory: .github/workflows-resources
-#        run: |
-#          curl -L https://istio.io/downloadIstio | sh -
-#          export PATH=$PWD/istio-${{ env.ISTIO_VERSION }}/bin:$PATH
-#          echo "y" | istioctl install -f istio-minimal-operator.yaml
+      - name: "Install Istio"
+        working-directory: .github/workflows-resources
+        run: |
+          curl -L https://istio.io/downloadIstio | sh -
+          export PATH=$PWD/istio-${{ env.ISTIO_VERSION }}/bin:$PATH
+          echo "y" | istioctl install -f istio-minimal-operator.yaml
 
       - name: "Install Knative with Istio Controller"
         run: |
@@ -44,13 +44,6 @@ jobs:
             -f https://github.com/knative/serving/releases/download/v${{ env.KNATIVE_VERSION }}/serving-crds.yaml
           kubectl apply \
             -f https://github.com/knative/serving/releases/download/v${{ env.KNATIVE_VERSION }}/serving-core.yaml
-
-          kubectl apply \
-            -l knative.dev/crd-install=true \
-            -f https://github.com/knative/net-istio/releases/download/v${{ env.KNATIVE_ISTIO_VERSION }}/istio.yaml
-
-          kubectl apply \
-            -f https://github.com/knative/net-istio/releases/download/v${{ env.KNATIVE_ISTIO_VERSION }}/istio.yaml
 
           kubectl apply \
             -f https://github.com/knative/net-istio/releases/download/v${{ env.KNATIVE_ISTIO_VERSION }}/net-istio.yaml
