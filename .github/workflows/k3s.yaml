@@ -53,6 +53,9 @@ jobs:
           kubectl apply \
             -f https://github.com/knative/serving/releases/download/v${{ env.KNATIVE_VERSION }}/serving-default-domain.yaml
 
+          kubectl -n knative-serving patch configmap/config-deployment \
+            --type merge -p '{"data":{"registriesSkippingTagResolving": "${{ env.LOCAL_REGISTRY }}"}}'
+
       - name: "Deploy 'Hello World' Knative service"
         working-directory: .github/workflows-resources
         run: |
