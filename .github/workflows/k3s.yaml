@@ -34,10 +34,6 @@ jobs:
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
-      - run: |
-          k3d kubeconfig get ${{ env.CLUSTER_NAME }}
-          echo "some text"
-
       - name: "Install Istio"
         working-directory: .github/workflows-resources
         run: |
@@ -152,7 +148,7 @@ jobs:
           timeout: 200 #seconds
           max-restarts: -1
 
-      - if: ${{ failure() || success() }}
+      - if: ${{ always() }}
         run: |
           kubectl logs deployment/merlin
           kubectl logs statefulset.apps/vault
