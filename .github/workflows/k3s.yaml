@@ -103,18 +103,8 @@ jobs:
           VAULT_ADDR: http://vault.127.0.0.1.nip.io
           VAULT_TOKEN: root
         run: |
-          # Install Vault CLI
-          wget -q https://releases.hashicorp.com/vault/${{ env.VAULT_VERSION }}/vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
-          && unzip vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
-          && rm vault_${{ env.VAULT_VERSION }}_linux_amd64.zip
-          export PATH=$PWD:$PATH
-
-          # Wait until Istio Ingress controller is ready to serve the new rule
-          # timeout --foreground 45 bash -c \
-          #   "until curl -v -s --fail http://vault.127.0.0.1.nip.io/v1/; do sleep 2; done"
-
           timeout --foreground 45 bash -c \
-            'until curl -v -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" -X LIST  http://vault.127.0.0.1.nip.io/v1/secret/; do sleep 2; done'
+            'until curl -v -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/secret/?list=true; do sleep 2; done'
 
           cat <<EOF > credentials.json
           {
@@ -125,16 +115,12 @@ jobs:
           }
           EOF
 
-          cat credentials.json
-
           curl -v \
             -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
             -H "Content-Type: application/json" \
             -X POST \
             --data-binary @credentials.json \
             http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}
-
-          vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
 
       - name: Install Merlin
         run: |
