@@ -190,7 +190,7 @@ jobs:
             deployment/merlin,
             deployment/mockserver,
             deployment/hello-world-deployment
-          max-restarts: 3
+          timeout: 300 #seconds
 
       - if: ${{ failure() }}
         run: |
