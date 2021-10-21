@@ -6,7 +6,7 @@ env:
   REGISTRY: ghcr.io
   TURING_VERSION: 0.0.0-build.1-164b88c
   MLP_VERSION: 1.4.14
-  MERLIN_VERSION: 0.7.0
+  MERLIN_VERSION: 0.14.0
   LOCAL_REGISTRY: registry.localhost:5000
 
 jobs:
@@ -95,15 +95,8 @@ jobs:
 
       - name: Prepare Vault secret for Merlin
         env:
-          VAULT_ADDR: http://vault.127.0.0.1.nip.io
           VAULT_TOKEN: root
         run: |
-          # Install Vault CLI
-          wget -q https://releases.hashicorp.com/vault/${{ env.VAULT_VERSION }}/vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
-            && unzip vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
-            && rm vault_${{ env.VAULT_VERSION }}_linux_amd64.zip
-          export PATH=$PWD:$PATH
-
           timeout --foreground 45 bash -c \
             'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts; do sleep 2; done'
 
@@ -122,14 +115,12 @@ jobs:
             --data @credentials.json \
             http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}
 
-          vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
+          kubectl create secret generic vault-secret \
+            --from-literal=address=http://vault:8200 \
+            --from-literal=token=root
 
       - name: Install Merlin
         run: |
-          kubectl create secret generic vault-secret \
-              --from-literal=address=http://vault:8200 \
-              --from-literal=token=root
-
           helm install merlin ./merlin/charts/merlin \
             --set merlin.image.tag=v${{ env.MERLIN_VERSION }} \
             --set merlin.environmentConfigs[0].cluster=k3d-${{ env.CLUSTER_NAME }} \
