@@ -103,8 +103,7 @@ jobs:
           VAULT_ADDR: http://vault.127.0.0.1.nip.io
           VAULT_TOKEN: root
         run: |
-
-          export healthz='curl -v \
+          export healthz='curl -v -s --fail \
             -H "X-Vault-Request: true" \
             -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
             http://vault.127.0.0.1.nip.io/v1/secret?list=true'
