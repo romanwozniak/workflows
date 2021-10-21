@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: mockserver
   labels:
-    mockserver-name: mockserver
+    app: mockserver
 data:
   http_request_response_mocks.json: |
     [
@@ -45,7 +45,6 @@ metadata:
   name: mockserver
   labels:
     app: mockserver
-    mockserver-name: mockserver
 spec:
   replicas: 1
   selector:
@@ -81,10 +80,10 @@ kind: Service
 metadata:
   name: mockserver
   labels:
-    mockserver-name: mockserver
+    app: mockserver
 spec:
   selector:
-    mockserver-name: mockserver
+    app: mockserver
   ports:
     - port: 80
       targetPort: 1080
