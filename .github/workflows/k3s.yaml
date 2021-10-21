@@ -179,17 +179,14 @@ jobs:
             --data-binary @cluster-credentials.json \
             http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}
 
-
-
-
-#          cat <<EOF | vault kv put secret/k3d-${{ env.CLUSTER_NAME }} -
-#          {
-#          "master_ip": "kubernetes:443",
-#          "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
-#          "client_certificate": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-certificate-data' - | base64 --decode | awk 1 ORS='\\n')",
-#          "client_key": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-key-data' - | base64 --decode | awk 1 ORS='\\n')"
-#          }
-#          EOF
+          # cat <<EOF | vault kv put secret/k3d-${{ env.CLUSTER_NAME }} -
+          # {
+          # "master_ip": "kubernetes:443",
+          # "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
+          # "client_certificate": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-certificate-data' - | base64 --decode | awk 1 ORS='\\n')",
+          # "client_key": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-key-data' - | base64 --decode | awk 1 ORS='\\n')"
+          # }
+          # EOF
 
           vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
 
