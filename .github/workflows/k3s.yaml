@@ -30,7 +30,7 @@ jobs:
           cluster-name: ${{ env.CLUSTER_NAME }}
           args: >-
             --servers 1
-            --agents 3
+            --agents 5
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
@@ -156,6 +156,8 @@ jobs:
 
       - if: ${{ failure() }}
         run: |
+          kubectl describe nodes
+          kubectl get events --field-selector type=Warning
           k3d node list
           kubectl get deployment/merlin -o yaml
 
