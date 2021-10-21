@@ -5,5 +5,4 @@ server:
   - /bin/sh
   - -c
   - |
-    vault secrets disable secret
     vault secrets enable -path=secret kv
