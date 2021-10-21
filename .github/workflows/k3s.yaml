@@ -18,7 +18,7 @@ jobs:
       KNATIVE_VERSION: 0.18.3
       KNATIVE_ISTIO_VERSION: 0.18.1
       VAULT_VERSION: 1.8.4
-      VAULT_CHART_VERSION: 0.7.0
+      VAULT_CHART_VERSION: 0.10.0
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -152,14 +152,12 @@ jobs:
           timeout: 200 #seconds
           max-restarts: -1
 
-      - if: ${{ failure() }}
+      - if: ${{ failure() || success() }}
         run: |
           kubectl logs deployment/merlin
           kubectl logs statefulset.apps/vault
 
-
           kubectl get pod -l app=merlin -o yaml
-
 
           kubectl describe nodes
           kubectl get events --field-selector type=Warning
@@ -171,7 +169,7 @@ jobs:
             "until curl -v -s --fail http://mockserver.127.0.0.1.nip.io/control; do sleep 2; done"
 
           timeout --foreground 45 bash -c \
-            "until curl -v -s --fail http://merlin.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
+            "until curl -v -s --fail http://merlin.127.0.0.1.nip.io/v1/environments; do sleep 2; done"
 
 
 
