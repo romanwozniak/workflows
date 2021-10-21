@@ -80,10 +80,15 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - run: |
-          docker pull ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
+          docker pull ${{ env.REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }}
           docker tag \
-            ${{ env.REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }} \
-            ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
+            ${{ env.REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }} \
+            ${{ env.LOCAL_REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }}
+
+          docker pull ${{ env.REGISTRY }}/gojek/merlin:v${{ env.MERLIN_VERSION }}
+          docker tag \
+            ${{ env.REGISTRY }}/gojek/merlin:v${{ env.MERLIN_VERSION }} \
+            ${{ env.LOCAL_REGISTRY }}/gojek/merlin:v${{ env.MERLIN_VERSION }}
 
           docker pull gcr.io/knative-samples/helloworld-go
           docker tag \
@@ -91,11 +96,12 @@ jobs:
             ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go
 
           docker push ${{ env.LOCAL_REGISTRY }}/knative-samples/helloworld-go
-          docker push ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
+          docker push ${{ env.LOCAL_REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }}
+          docker push ${{ env.LOCAL_REGISTRY }}/gojek/merlin:v${{ env.MERLIN_VERSION }}
 
           docker image save \
             --output mlp-${{ env.MLP_VERSION }}.tar \
-            ${{ env.LOCAL_REGISTRY }}/gojek/mlp:${{ env.MLP_VERSION }}
+            ${{ env.LOCAL_REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }}
 
       - name: "Deploy 'Hello World' Knative service"
         working-directory: .github/workflows-resources
@@ -132,7 +138,7 @@ jobs:
           helm install mlp ./mlp/charts/mlp \
             --set mlp.image.registry=${{ env.LOCAL_REGISTRY }} \
             --set mlp.image.repository=gojek/mlp \
-            --set mlp.image.tag=${{ env.MLP_VERSION }} \
+            --set mlp.image.tag=v${{ env.MLP_VERSION }} \
             --values mlp.helm-values.yaml
 
           kubectl apply -f .github/workflows-resources/mlp.ingress.yaml
@@ -204,7 +210,7 @@ jobs:
       - e2e
     uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
     with:
-      mlp_version: v1.4.14
+      mlp_version: 1.4.14
 
 
 
