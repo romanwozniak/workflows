@@ -155,6 +155,7 @@ jobs:
       - if: ${{ failure() }}
         run: |
           kubectl logs deployment/merlin
+          kubectl logs statefulset.apps/vault
 
 
           kubectl get pod -l app=merlin -o yaml
