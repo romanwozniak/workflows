@@ -109,31 +109,23 @@ jobs:
             && rm vault_${{ env.VAULT_VERSION }}_linux_amd64.zip
           export PATH=$PWD:$PATH
 
-          cat <<EOF | timeout --foreground 45 bash
-          until
-            curl -v -s --fail \
-              --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
-              http://vault.127.0.0.1.nip.io/v1/secret/config
-          do sleep 2; done
-          EOF
+          timeout --foreground 45 bash -c \
+            'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts; do sleep 2; done'
 
           cat <<EOF > credentials.json
           {
-            "data": {
-              "master_ip": "kubernetes:443",
-              "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
-              "client_certificate": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-certificate-data' - | base64 --decode | awk 1 ORS='\\n')",
-              "client_key": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-key-data' - | base64 --decode | awk 1 ORS='\\n')"
-            }
+            "master_ip": "kubernetes:443",
+            "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
+            "client_certificate": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-certificate-data' - | base64 --decode | awk 1 ORS='\\n')",
+            "client_key": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-key-data' - | base64 --decode | awk 1 ORS='\\n')"
           }
           EOF
 
           curl -v \
             --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
-            --header "Content-Type: application/json" \
             --request POST \
             --data @credentials.json \
-            http://vault.127.0.0.1.nip.io/v1/secret/data/k3d-${{ env.CLUSTER_NAME }}
+            http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}
 
           vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
 
