@@ -71,12 +71,6 @@ jobs:
 
           kubectl apply -f vault.ingress.yaml
 
-      - name: "Deploy 'Hello World' Knative service"
-        working-directory: .github/workflows-resources
-        run: |
-          kubectl apply \
-            -f hello.knative.yaml
-
       - name: "Deploy mockserver"
         working-directory: .github/workflows-resources
         run: |
@@ -161,8 +155,7 @@ jobs:
           workloads: >-
             deployment/mlp,
             deployment/merlin,
-            deployment/mockserver,
-            deployment/hello-world-deployment
+            deployment/mockserver
           timeout: 300 #seconds
           max-restarts: -1
 
@@ -171,8 +164,6 @@ jobs:
           kubectl get deployment/merlin -o yaml
 
       - run: |
-          curl -v http://hello.default.127.0.0.1.nip.io
-
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://mockserver.127.0.0.1.nip.io/control; do sleep 2; done"
 
