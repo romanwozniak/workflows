@@ -160,13 +160,15 @@ jobs:
             deployment/mlp,
             deployment/merlin,
             deployment/mockserver
-          timeout: 150 #seconds
+          timeout: 200 #seconds
           max-restarts: -1
 
       - if: ${{ failure() }}
         run: |
           kubectl logs deployment/merlin
 
+
+          kubectl get pod -l app=merlin -o yaml
 
 
           kubectl describe nodes
