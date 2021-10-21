@@ -127,7 +127,7 @@ jobs:
       - e2e
     uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
     with:
-      mlp_version: ${{ env.MLP_VERSION }}
+      mlp_version: v1.4.14
 
 
 
