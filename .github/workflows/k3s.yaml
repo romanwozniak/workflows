@@ -18,7 +18,7 @@ jobs:
       KNATIVE_VERSION: 0.18.3
       KNATIVE_ISTIO_VERSION: 0.18.1
       VAULT_VERSION: 1.8.4
-      VAULT_CHART_VERSION: 0.7.0
+      VAULT_CHART_VERSION: 0.16.1
     steps:
       - name: Check out code
         uses: actions/checkout@v2
