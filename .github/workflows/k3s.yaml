@@ -151,11 +151,12 @@ jobs:
             deployment/mlp,
             deployment/merlin,
             deployment/mockserver
-          timeout: 300 #seconds
+          timeout: 150 #seconds
           max-restarts: -1
 
       - if: ${{ failure() }}
         run: |
+          k3d node list
           kubectl get deployment/merlin -o yaml
 
       - run: |
