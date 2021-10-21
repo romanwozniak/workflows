@@ -154,12 +154,12 @@ jobs:
           && rm vault_${{ env.VAULT_VERSION }}_linux_amd64.zip
           export PATH=$PWD:$PATH
 
-#          Wait until Istio Ingress controller is ready to serve the new rule
-#          timeout --foreground 45 bash -c \
-#            "until curl -v -s --fail http://vault.127.0.0.1.nip.io/v1/; do sleep 2; done"
+          # Wait until Istio Ingress controller is ready to serve the new rule
+          # timeout --foreground 45 bash -c \
+          #   "until curl -v -s --fail http://vault.127.0.0.1.nip.io/v1/; do sleep 2; done"
 
           timeout --foreground 45 bash -c \
-            'until curl -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" -X LIST  http://vault.127.0.0.1.nip.io/v1/secret/; do sleep 2; done'
+            'until curl -v -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" -X LIST  http://vault.127.0.0.1.nip.io/v1/secret/; do sleep 2; done'
 
           cat <<EOF > cluster-credentials.json
           {
