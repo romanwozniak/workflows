@@ -203,7 +203,7 @@ jobs:
             "until curl -v -s --fail http://mockserver.127.0.0.1.nip.io/control; do sleep 2; done"
 
           timeout --foreground 45 bash -c \
-            "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
+            "until curl -v -s --fail http://merlin.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
 
   publish:
     needs:
