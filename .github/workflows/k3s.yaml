@@ -6,6 +6,7 @@ env:
   REGISTRY: ghcr.io
   TURING_VERSION: 0.0.0-build.1-164b88c
   MLP_VERSION: v1.4.14
+  MERLIN_VERSION: 0.7.0
   LOCAL_REGISTRY: registry.localhost:5000
 
 jobs:
@@ -16,6 +17,8 @@ jobs:
       ISTIO_VERSION: 1.9.9
       KNATIVE_VERSION: 0.18.3
       KNATIVE_ISTIO_VERSION: 0.18.1
+      VAULT_VERSION: 1.8.4
+      VAULT_CHART_VERSION: 0.16.1
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -58,6 +61,16 @@ jobs:
 
           kubectl -n knative-serving patch configmap/config-deployment \
             --type merge -p '{"data":{"registriesSkippingTagResolving": "${{ env.LOCAL_REGISTRY }}"}}'
+
+      - name: "Install Vault"
+        run: |
+          helm repo add hashicorp https://helm.releases.hashicorp.com
+          helm install vault hashicorp/vault \
+            --version=${{ env.VAULT_CHART_VERSION }} \
+            --values vault.helm-values.yaml \
+            --wait
+
+          kubectl apply -f vault.ingress.yaml
 
       - name: Log in to the GH Container Registry
         uses: docker/login-action@v1
@@ -107,7 +120,12 @@ jobs:
         with:
           repository: gojek/mlp
           ref: ${{ env.MLP_VERSION }}
-          token: ${{ secrets.GH_PAT }}
+          path: mlp
+
+      - uses: actions/checkout@v2
+        with:
+          repository: gojek/merlin
+          ref: v${{ env.MERLIN_VERSION }}
           path: mlp
 
       - run: |
@@ -119,13 +137,58 @@ jobs:
 
           kubectl apply -f .github/workflows-resources/mlp.ingress.yaml
 
+      - name: Prepare Vault secret for Merlin
+        env:
+          VAULT_ADDR: http://vault.127.0.0.1.nip.io
+          VAULT_TOKEN: root
+        run: |
+          # Install Vault CLI
+          wget -q https://releases.hashicorp.com/vault/${{ env.VAULT_VERSION }}/vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
+          && unzip vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
+          && rm vault_${{ env.VAULT_VERSION }}_linux_amd64.zip
+          export PATH=$PWD:$PATH
+
+          # Wait until Istio Ingress controller is ready to serve the new rule
+          timeout --foreground 45 bash -c \
+            "until curl -v -s --fail http://vault.127.0.0.1.nip.io; do sleep 2; done"
+
+          cat <<EOF | vault kv put secret/k3d-${{ env.CLUSTER_NAME }} -
+          {
+          "master_ip": "kubernetes:443",
+          "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
+          "client_certificate": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-certificate-data' - | base64 --decode | awk 1 ORS='\\n')",
+          "client_key": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-key-data' - | base64 --decode | awk 1 ORS='\\n')"
+          }
+          EOF
+
+          vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
+
+      - name: Install Merlin
+        run: |
+          kubectl create secret generic vault-secret \
+              --from-literal=address=http://vault:8200 \
+              --from-literal=token=root
+
+          helm install merlin ./merlin/charts/merlin \
+            --set merlin.image.tag=v${{ env.MERLIN_VERSION }} \
+            --set merlin.environmentConfigs[0].cluster=k3d-${{ env.CLUSTER_NAME }} \
+            --set merlin.imageBuilder.clusterName=k3d-${{ env.CLUSTER_NAME }} \
+            --values infra/e2e/merlin.helm-values.yaml
+
+          kubectl apply -f infra/e2e/merlin.ingress.yaml
+
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
           workloads: >-
             deployment/mlp,
+            deployment/merlin,
             deployment/mockserver,
             deployment/hello-world-deployment
           max-restarts: 3
+
+      - if: ${{ failure() }}
+        run: |
+          kubectl get deployment/merlin -o yaml
 
       - run: |
           curl -v http://hello.default.127.0.0.1.nip.io
@@ -135,22 +198,6 @@ jobs:
 
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
-
-  test_yq:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          # Install yq
-          yq --version
-
-          wget -q -O yq https://github.com/mikefarah/yq/releases/download/${{ env.YQ_VERSION }}/yq_linux_amd64
-
-          export PATH=$PWD:$PATH
-
-          yq --version
-
-        env:
-          YQ_VERSION: 3.4.0
 
   publish:
     needs:
