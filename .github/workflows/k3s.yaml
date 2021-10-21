@@ -103,6 +103,11 @@ jobs:
           VAULT_ADDR: http://vault.127.0.0.1.nip.io
           VAULT_TOKEN: root
         run: |
+          # Install Vault CLI
+          wget -q https://releases.hashicorp.com/vault/${{ env.VAULT_VERSION }}/vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
+            && unzip vault_${{ env.VAULT_VERSION }}_linux_amd64.zip \
+            && rm vault_${{ env.VAULT_VERSION }}_linux_amd64.zip
+          export PATH=$PWD:$PATH
 
           cat <<EOF | timeout --foreground 45 bash
           until
@@ -129,6 +134,8 @@ jobs:
             --request POST \
             --data @credentials.json \
             http://vault.127.0.0.1.nip.io/v1/secret/data/k3d-${{ env.CLUSTER_NAME }}
+
+          vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
 
       - name: Install Merlin
         run: |
