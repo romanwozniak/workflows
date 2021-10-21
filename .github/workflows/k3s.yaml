@@ -32,6 +32,12 @@ jobs:
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
+      - run:
+          # Some comment
+          k3d kubeconfig get ${{ env.CLUSTER_NAME }}
+          echo "some text"
+
+
       - name: "Install Istio"
         working-directory: .github/workflows-resources
         run: |
@@ -48,11 +54,6 @@ jobs:
 
           kubectl apply \
             -f https://github.com/knative/net-istio/releases/download/v${{ env.KNATIVE_ISTIO_VERSION }}/net-istio.yaml
-
-          kubectl --namespace istio-system get service istio-ingressgateway
-
-          kubectl apply \
-            -f https://github.com/knative/serving/releases/download/v${{ env.KNATIVE_VERSION }}/serving-default-domain.yaml
 
           kubectl -n knative-serving patch configmap/config-domain \
             --type merge -p '{"data":{"127.0.0.1.nip.io":""}}'
@@ -96,9 +97,9 @@ jobs:
           name: mlp-${{ env.MLP_VERSION }}.tar
           path: mlp-${{ env.MLP_VERSION }}.tar
 
-#      - uses: azure/setup-helm@v1
-#        with:
-#          version: 'v2.17.0'
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'v2.17.0'
 
       - uses: actions/checkout@v2
         with:
@@ -120,10 +121,6 @@ jobs:
         with:
           workloads: "deployment/mlp,deployment/hello-world-deployment"
           max-restarts: 3
-
-      - run: |
-          kubectl get services
-          kubectl get pods
 
       - run: |
           curl -v http://hello.default.127.0.0.1.nip.io
