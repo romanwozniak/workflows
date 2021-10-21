@@ -18,7 +18,7 @@ jobs:
       KNATIVE_VERSION: 0.18.3
       KNATIVE_ISTIO_VERSION: 0.18.1
       VAULT_VERSION: 1.8.4
-      VAULT_CHART_VERSION: 0.9.1
+      VAULT_CHART_VERSION: 0.16.1
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -62,7 +62,8 @@ jobs:
           helm repo add hashicorp https://helm.releases.hashicorp.com
           helm install vault hashicorp/vault \
             --version=${{ env.VAULT_CHART_VERSION }} \
-            --values vault.helm-values.yaml
+            --values vault.helm-values.yaml \
+            --wait
 
           kubectl apply -f vault.ingress.yaml
 
