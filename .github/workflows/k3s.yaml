@@ -125,7 +125,7 @@ jobs:
   publish:
     needs:
       - e2e
-    uses: ${{ github.repository }}/.github/workflows/publish.yaml@${{ github.ref }}
+    uses: romanwozniak/workflows/.github/workflows/publish.yaml@${{ github.ref }}
     with:
       mlp_version: ${{ env.MLP_VERSION }}
 
