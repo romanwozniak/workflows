@@ -135,6 +135,22 @@ jobs:
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
 
+  test_yq:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          # Install yq
+          yq --version
+
+          wget -q -O yq https://github.com/mikefarah/yq/releases/download/${{ env.YQ_VERSION }}/yq_linux_amd64
+
+          export PATH=$PWD:$PATH
+
+          yq --version
+
+        env:
+          YQ_VERSION: 3.4.0
+
   publish:
     needs:
       - e2e
