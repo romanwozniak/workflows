@@ -90,6 +90,14 @@ jobs:
           kubectl apply \
             -f hello.knative.yaml
 
+      - name: "Deploy mockserver"
+        working-directory: .github/workflows-resources
+        run: |
+          kubectl apply \
+            -f turing.mockserver.yaml
+          kubectl apply \
+            -f mockserver.ingress.yaml
+
       - uses: actions/upload-artifact@v2
         with:
           name: mlp-${{ env.MLP_VERSION }}.tar
@@ -113,11 +121,16 @@ jobs:
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
-          workloads: "deployment/mlp,deployment/hello-world-deployment"
+          workloads: >-
+            deployment/mlp,
+            deployment/mockserver,
+            deployment/hello-world-deployment
           max-restarts: 3
 
       - run: |
           curl -v http://hello.default.127.0.0.1.nip.io
+
+          curl -v http://mockserver.default.127.0.0.1.nip.io/control
 
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
