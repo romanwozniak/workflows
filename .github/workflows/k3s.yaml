@@ -32,11 +32,9 @@ jobs:
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
-      - run:
-          # Some comment
+      - run: |
           k3d kubeconfig get ${{ env.CLUSTER_NAME }}
           echo "some text"
-
 
       - name: "Install Istio"
         working-directory: .github/workflows-resources
