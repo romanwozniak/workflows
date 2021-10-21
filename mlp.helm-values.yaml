@@ -1,6 +1,6 @@
 mlp:
   image:
-    registry: ""
+    registry: ghrc.io
     repository: gojek/mlp
     tag: v1.1.0-alpha
   environment: dev
@@ -11,7 +11,7 @@ mlp:
     limits:
       memory: 128Mi
   encryption:
-    key: efwefwefwef
+    key: password
 
 postgresql:
   resources:
