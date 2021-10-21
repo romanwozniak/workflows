@@ -18,7 +18,7 @@ jobs:
       KNATIVE_VERSION: 0.18.3
       KNATIVE_ISTIO_VERSION: 0.18.1
       VAULT_VERSION: 1.8.4
-      VAULT_CHART_VERSION: 0.16.1
+      VAULT_CHART_VERSION: 0.7.0
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -28,10 +28,9 @@ jobs:
         uses: AbsaOSS/k3d-action@v1.5.0
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
-          use-default-registry: true
           args: >-
             --servers 1
-            --agents 2
+            --agents 1
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
@@ -123,7 +122,7 @@ jobs:
           timeout --foreground 45 bash -c \
             'until curl -v -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" -X LIST  http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}; do sleep 2; done'
 
-          cat <<EOF > cluster-credentials.json
+          cat <<EOF > credentials.json
           {
             "master_ip": "kubernetes:443",
             "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
@@ -132,13 +131,13 @@ jobs:
           }
           EOF
 
-          cat cluster-credentials.json
+          cat credentials.json
 
           curl \
             -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
             -H "Content-Type: application/json" \
             -X POST \
-            --data-binary @cluster-credentials.json \
+            --data-binary @credentials.json \
             http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}
 
           # cat <<EOF | vault kv put secret/k3d-${{ env.CLUSTER_NAME }} -
