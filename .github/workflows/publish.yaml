@@ -1,0 +1,21 @@
+name: Publish
+
+on:
+  workflow_call:
+    inputs:
+      mlp_version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: mlp-${{ inputs.mlp_version }}.tar
+          path: ./
+
+      - run: |
+          docker image load --input mlp-${{ inputs.mlp_version }}.tar
+          docker image ls

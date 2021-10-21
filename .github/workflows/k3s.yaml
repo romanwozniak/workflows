@@ -95,10 +95,6 @@ jobs:
           name: mlp-${{ env.MLP_VERSION }}.tar
           path: mlp-${{ env.MLP_VERSION }}.tar
 
-      - uses: azure/setup-helm@v1
-        with:
-          version: 'v2.17.0'
-
       - uses: actions/checkout@v2
         with:
           repository: gojek/mlp
@@ -127,19 +123,12 @@ jobs:
             "until curl -v -s --fail http://mlp.127.0.0.1.nip.io/v1/projects; do sleep 2; done"
 
   publish:
-    runs-on: ubuntu-latest
     needs:
       - e2e
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: mlp-${{ env.MLP_VERSION }}.tar
-          path: ./
+    uses: ${{ github.repository }}/.github/workflows/publish.yaml@${{ github.ref }}
+    with:
+      mlp_version: ${{ env.MLP_VERSION }}
 
-      - run: |
-          docker image load --input mlp-${{ env.MLP_VERSION }}.tar
-
-          docker image ls
 
 
 
