@@ -173,9 +173,9 @@ jobs:
             --set merlin.image.tag=v${{ env.MERLIN_VERSION }} \
             --set merlin.environmentConfigs[0].cluster=k3d-${{ env.CLUSTER_NAME }} \
             --set merlin.imageBuilder.clusterName=k3d-${{ env.CLUSTER_NAME }} \
-            --values infra/e2e/merlin.helm-values.yaml
+            --values merlin.helm-values.yaml
 
-          kubectl apply -f infra/e2e/merlin.ingress.yaml
+          kubectl apply -f merlin.ingress.yaml
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
