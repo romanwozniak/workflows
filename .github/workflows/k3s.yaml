@@ -120,7 +120,7 @@ jobs:
           #   "until curl -v -s --fail http://vault.127.0.0.1.nip.io/v1/; do sleep 2; done"
 
           timeout --foreground 45 bash -c \
-            'until curl -v -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" -X LIST  http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}; do sleep 2; done'
+            'until curl -v -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" -X LIST  http://vault.127.0.0.1.nip.io/v1/secret/; do sleep 2; done'
 
           cat <<EOF > credentials.json
           {
@@ -133,21 +133,12 @@ jobs:
 
           cat credentials.json
 
-          curl \
+          curl -v \
             -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
             -H "Content-Type: application/json" \
             -X POST \
             --data-binary @credentials.json \
             http://vault.127.0.0.1.nip.io/v1/secret/k3d-${{ env.CLUSTER_NAME }}
-
-          # cat <<EOF | vault kv put secret/k3d-${{ env.CLUSTER_NAME }} -
-          # {
-          # "master_ip": "kubernetes:443",
-          # "certs": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.clusters[0].cluster.certificate-authority-data' - | base64 --decode | awk 1 ORS='\\n')",
-          # "client_certificate": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-certificate-data' - | base64 --decode | awk 1 ORS='\\n')",
-          # "client_key": "$(k3d kubeconfig get ${{ env.CLUSTER_NAME }} | yq e '.users[0].user.client-key-data' - | base64 --decode | awk 1 ORS='\\n')"
-          # }
-          # EOF
 
           vault kv get secret/k3d-${{ env.CLUSTER_NAME }}
 
