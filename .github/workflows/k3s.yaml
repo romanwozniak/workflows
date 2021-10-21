@@ -5,7 +5,7 @@ on: [push]
 env:
   REGISTRY: ghcr.io
   TURING_VERSION: 0.0.0-build.1-164b88c
-  MLP_VERSION: v1.4.14
+  MLP_VERSION: 1.4.14
   MERLIN_VERSION: 0.7.0
   LOCAL_REGISTRY: registry.localhost:5000
 
@@ -119,14 +119,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: gojek/mlp
-          ref: ${{ env.MLP_VERSION }}
+          ref: v${{ env.MLP_VERSION }}
           path: mlp
 
       - uses: actions/checkout@v2
         with:
           repository: gojek/merlin
           ref: v${{ env.MERLIN_VERSION }}
-          path: mlp
+          path: merlin
 
       - run: |
           helm install mlp ./mlp/charts/mlp \
