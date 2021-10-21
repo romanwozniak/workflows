@@ -109,7 +109,7 @@ jobs:
             curl -v -s --fail
               --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}"
               http://vault.127.0.0.1.nip.io/v1/secret/config
-            ; do sleep 2; done'
+          do sleep 2; done'
           EOF
 
           cat <<EOF > credentials.json
