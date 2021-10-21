@@ -30,7 +30,7 @@ jobs:
           cluster-name: ${{ env.CLUSTER_NAME }}
           args: >-
             --servers 1
-            --agents 1
+            --agents 3
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
