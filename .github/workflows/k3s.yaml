@@ -98,7 +98,7 @@ jobs:
           VAULT_TOKEN: root
         run: |
           timeout --foreground 45 bash -c \
-            'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts | jq; do sleep 2; done'
+            'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts; do sleep 2; done'
 
           curl -v \
             --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
