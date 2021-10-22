@@ -100,7 +100,12 @@ jobs:
           kubectl get services
           kubectl get pods
           kubectl get deployment
-          kubectl describe deployment/control
-          kubectl logs deployment/control
           kubectl get kservice
+
+      - run: |
+          curl -v \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"hello": "world"}' \
+            http://turing-router.default.127.0.0.1.nip.io/predict
 
