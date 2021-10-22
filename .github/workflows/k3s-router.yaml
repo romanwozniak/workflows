@@ -62,28 +62,14 @@ jobs:
           kubectl apply \
             -f mockserver.ingress.yaml
 
-      - uses: azure/setup-helm@v1
-        with:
-          version: 2.16.7
-
-      - run: |
-          helm init --upgrade --stable-repo-url=https://charts.helm.sh/stable
-
-      - uses: jupyterhub/action-k8s-await-workloads@v1
-        with:
-          timeout: 300 #seconds
-          max-restarts: -1
-
       - name: "Deploy Router"
         run: |
-          helm version
-
           helm install turing-router ./charts/turing-router-load-test \
             --set turing.router.image.tag=0.0.0-build.1-e8ee033 \
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
             --set turing.router.minReplica=3 \
             --set turing.router.maxReplica=3 \
-            --set turing.enricher.enabled=true \
+            --set turing.enricher.enabled=false \
             --set turing.enricher.repository=kennethreitz/httpbin \
             --set turing.enricher.tag=latest \
             --set turing.enricher.minReplica=3 \
