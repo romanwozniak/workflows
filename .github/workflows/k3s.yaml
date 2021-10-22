@@ -100,26 +100,6 @@ jobs:
           timeout --foreground 45 bash -c \
             'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts; do sleep 2; done'
 
-          curl -v \
-            --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
-            --request DELETE \
-            http://vault.127.0.0.1.nip.io/v1/sys/mounts/secret
-
-          tee payload.json <<EOF
-          {
-            "type": "kv",
-            "options": {
-              "version": "1"
-            }
-          }
-          EOF
-
-          curl -v \
-            --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
-            --request POST \
-            --data @payload.json \
-            http://vault.127.0.0.1.nip.io/v1/sys/mounts/secret
-
           tee credentials.json <<EOF
           {
             "master_ip": "kubernetes:443",
