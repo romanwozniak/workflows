@@ -28,15 +28,19 @@ turing:
       registry: #Set by CI var
       repository: #Set by CI var
       tag: #Set by CI var
+    containerPort: 80
     config:
       endpoint: "anything"
+      timeout: "3s"
   ensembler:
     image:
       registry: #Set by CI var
       repository: #Set by CI var
       tag: #Set by CI var
+    containerPort: 80
     config:
       endpoint: "anything"
+      timeout: "3s"
   fluentd:
     enabled: false
 
