@@ -4,4 +4,8 @@ server:
   postStart:
     - /bin/sh
     - -c
-    - sleep 5 && vault secrets disable secret/ && vault secrets enable -path=kv_v1 -version=1 kv
+    - >-
+      sleep 5 &&
+        vault secrets disable secret/ &&
+        vault secrets enable -path=secret -version=1 kv &&
+        vault secrets enable -path=kv_v1 -version=1 kv
