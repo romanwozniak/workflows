@@ -100,5 +100,5 @@ jobs:
           kubectl get services
           kubectl get pods
           kubectl describe deployment/control
-          kubectl get serving.knative.dev
+          kubectl get kservice
 
