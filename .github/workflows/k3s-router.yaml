@@ -106,9 +106,10 @@ jobs:
           kubectl get kservice
 
       - run: |
-          curl -v \
-            -H "Content-Type: application/json" \
-            -X POST \
-            -d '{"hello": "world"}' \
-            http://turing-router.default.127.0.0.1.nip.io/predict
+          timeout --foreground 45 bash -c \
+            curl -v --fail -H "Content-Type: application/json" -X POST -d '{"hello": "world"}' http://turing-router.default.127.0.0.1.nip.io/predict
 
+      - if: always()
+        run: |
+          kubectl logs -l app=turing-router-1 -c user-container
+          kubectl get kservice
