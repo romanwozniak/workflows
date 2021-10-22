@@ -178,5 +178,8 @@ jobs:
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://merlin.127.0.0.1.nip.io/v1/environments; do sleep 2; done"
 
-
-
+  test-jq:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo '{"data": 1}' | jq
