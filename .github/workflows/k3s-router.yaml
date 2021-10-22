@@ -103,6 +103,11 @@ jobs:
           kubectl get deployment
           kubectl get kservice
 
+      - uses: jupyterhub/action-k8s-await-workloads@v1
+        with:
+          timeout: 120 #seconds
+          max-restarts: -1
+
       - run: |
           curl -v \
             -H "Content-Type: application/json" \
