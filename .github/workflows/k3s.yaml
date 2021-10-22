@@ -139,6 +139,11 @@ jobs:
             --from-literal=address=http://vault:8200 \
             --from-literal=token=root
 
+      - run: |
+          kubectl describe statefulset/vault
+          kubectl describe pods -l app=vault
+
+
       - name: Install Merlin
         run: |
           helm install merlin ./merlin/charts/merlin \
