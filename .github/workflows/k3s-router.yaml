@@ -52,6 +52,8 @@ jobs:
           kubectl -n knative-serving patch configmap/config-deployment \
             --type merge -p '{"data":{"registriesSkippingTagResolving": "${{ env.LOCAL_REGISTRY }}"}}'
 
+
+
       - name: "Deploy mockserver"
         working-directory: .github/workflows-resources
         run: |
@@ -60,35 +62,35 @@ jobs:
           kubectl apply \
             -f mockserver.ingress.yaml
 
+      - uses: azure/setup-helm@v1
+        with:
+          version: 2.16.7
+
       - name: "Deploy Router"
-        env:
-          TURING_ENRICHER_ENABLED: "true"
-          TURING_ENSEMBLER_ENABLED: "true"
-          TURING_LOGGING_LEVEL: "INFO"
-          REPLICA_COUNT: 3
         run: |
+          helm init --upgrade
           helm install turing-router ./charts/turing-router-load-test \
             --set turing.router.image.tag=0.0.0-build.1-e8ee033 \
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
-            --set turing.router.minReplica=${REPLICA_COUNT} \
-            --set turing.router.maxReplica=${REPLICA_COUNT} \
-            --set turing.enricher.enabled=${TURING_ENRICHER_ENABLED} \
+            --set turing.router.minReplica=3 \
+            --set turing.router.maxReplica=3 \
+            --set turing.enricher.enabled=true \
             --set turing.enricher.repository=kennethreitz/httpbin \
             --set turing.enricher.tag=latest \
-            --set turing.enricher.minReplica=${REPLICA_COUNT} \
-            --set turing.enricher.maxReplica=${REPLICA_COUNT} \
-            --set turing.ensembler.enabled=${TURING_ENSEMBLER_ENABLED} \
+            --set turing.enricher.minReplica=3 \
+            --set turing.enricher.maxReplica=3 \
+            --set turing.ensembler.enabled=true \
             --set turing.ensembler.repository=kennethreitz/httpbin \
             --set turing.ensembler.tag=latest \
-            --set turing.ensembler.minReplica=${REPLICA_COUNT} \
-            --set turing.ensembler.maxReplica=${REPLICA_COUNT} \
-            --set turing.logging.level=${TURING_LOGGING_LEVEL} \
+            --set turing.ensembler.minReplica=3 \
+            --set turing.ensembler.maxReplica=3 \
+            --set turing.logging.level=INFO \
             --set control.image.repository=kennethreitz/httpbin \
             --set control.image.tag=latest \
             --set modelA.image.repository=kennethreitz/httpbin \
             --set modelA.image.tag=latest \
-            --set control.replicaCount=${REPLICA_COUNT} \
-            --set modelA.replicaCount=${REPLICA_COUNT}
+            --set control.replicaCount=3 \
+            --set modelA.replicaCount=3
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         with:
