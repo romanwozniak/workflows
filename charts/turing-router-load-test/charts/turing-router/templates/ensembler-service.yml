@@ -22,7 +22,7 @@ spec:
       volumes:
 {{ include "bq.volume" . | indent 6 }}
       containers:
-      - image: {{ .Values.ensembler.image.registry }}{{ .Values.ensembler.image.repository }}:{{ .Values.ensembler.image.tag }}
+      - image: "{{ .Values.ensembler.image.registry }}{{ .Values.ensembler.image.repository }}:{{ .Values.ensembler.image.tag }}"
         ports:
           - containerPort: !!int {{ .Values.ensembler.containerPort | default 8080 }}
         resources:
