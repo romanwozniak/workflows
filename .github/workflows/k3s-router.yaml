@@ -66,7 +66,7 @@ jobs:
         env:
           REPLICA_COUNT: 1
         run: |
-          helm install turing-router ./charts/turing-router-load-test \
+          helm install turing ./charts/turing-router-load-test \
             --set turing.router.image.tag=0.0.0-build.1-e8ee033 \
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
             --set turing.router.minReplica=${{ env.REPLICA_COUNT }} \
@@ -87,7 +87,8 @@ jobs:
             --set modelA.image.repository=kennethreitz/httpbin \
             --set modelA.image.tag=latest \
             --set control.replicaCount=${{ env.REPLICA_COUNT }} \
-            --set modelA.replicaCount=${{ env.REPLICA_COUNT }}
+            --set modelA.replicaCount=${{ env.REPLICA_COUNT }} \
+            --wait
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         id: wait-for-deployment
