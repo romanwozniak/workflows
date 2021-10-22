@@ -34,6 +34,11 @@ jobs:
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
 
+      - run: |
+          kubectl config view
+          ls -l ~/.kube/
+          which k3d
+
       - name: "Install Istio"
         working-directory: .github/workflows-resources
         run: |
@@ -118,11 +123,6 @@ jobs:
           kubectl create secret generic vault-secret \
             --from-literal=address=http://vault:8200 \
             --from-literal=token=root
-
-      - run: |
-          kubectl describe statefulset/vault
-          kubectl describe pods -l app.kubernetes.io/name=vault
-
 
       - name: Install Merlin
         run: |
