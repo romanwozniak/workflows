@@ -66,10 +66,16 @@ jobs:
         with:
           version: 2.16.7
 
-      - name: "Deploy Router"
-        run: |
+      - run: |
           helm init --upgrade --service-account --stable-repo-url=https://charts.helm.sh/stable
 
+      - uses: jupyterhub/action-k8s-await-workloads@v1
+        with:
+          timeout: 300 #seconds
+          max-restarts: -1
+
+      - name: "Deploy Router"
+        run: |
           helm version
 
           helm install turing-router ./charts/turing-router-load-test \
