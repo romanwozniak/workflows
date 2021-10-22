@@ -4,8 +4,4 @@ server:
   postStart:
     - /bin/sh
     - -c
-    - |
-      sleep 10 && \
-      echo "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" && \
-      echo "          $(date)             " && \
-      echo "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    - echo "          $(date)             "
