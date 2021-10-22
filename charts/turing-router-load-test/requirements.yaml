@@ -1,0 +1,10 @@
+dependencies:
+  - name: turing-router
+    version: x.x.x
+    alias: turing
+  - name: route-endpoint
+    version: x.x.x
+    alias: control
+  - name: route-endpoint
+    version: x.x.x
+    alias: modelA

@@ -1,0 +1,58 @@
+turing:
+  logging:
+    level: DEBUG
+  monitoring:
+    customMetrics:
+      enabled: true
+  router:
+    image:
+      registry: #Set by CI var
+      repository: turing-router
+      tag: #Set by CI var
+    config:
+      environment: dev
+      routes:
+        - id: model-a
+          type: PROXY
+          endpoint: "http://mockserver/treatment-a"
+          timeout: 500ms
+        - id: control
+          type: PROXY
+          endpoint: "http://mockserver/control"
+          timeout: 500ms
+      properties:
+        default_route_id: control
+      timeout: 1s
+  enricher:
+    image:
+      registry: #Set by CI var
+      repository: #Set by CI var
+      tag: #Set by CI var
+    config:
+      endpoint: "anything"
+  ensembler:
+    image:
+      registry: #Set by CI var
+      repository: #Set by CI var
+      tag: #Set by CI var
+    config:
+      endpoint: "anything"
+  fluentd:
+    enabled: false
+
+control: &echo
+  global:
+    name: control
+  image:
+    registry: #Set by CI var
+    repository: #Set by CI var
+    tag: #Set by CI var
+  livenessProbe:
+    path: "/anything"
+  readinessProbe:
+    path: "/anything"
+
+modelA:
+  <<: *echo
+  global:
+    name: model-a

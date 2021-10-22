@@ -1,0 +1,123 @@
+{{- $resources := .Values.router.resources | default dict -}}
+{{- $limits := $resources.limits | default dict -}}
+{{- $requests := $resources.requests | default dict -}}
+{{- $monitoring := .Values.monitoring | default dict -}}
+{{- $customMetrics := $monitoring.customMetrics | default dict -}}
+{{- $tracing := $monitoring.tracing | default dict -}}
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-router
+  namespace: {{ .Release.Namespace }}
+spec:
+  template:
+    metadata:
+      name: {{ .Release.Name }}-router-{{ .Release.Revision }}
+      annotations:
+        autoscaling.knative.dev/class: "kpa.autoscaling.knative.dev"
+        autoscaling.knative.dev/minScale: "{{ .Values.router.minReplica }}"
+        autoscaling.knative.dev/maxScale: "{{ .Values.router.maxReplica }}"
+        autoscaling.knative.dev/target: "{{ .Values.router.targetConcurrency }}"
+    spec:
+      volumes:
+{{ include "bq.volume" . | indent 4 }}
+      - name: fiber-router-config
+        configMap:
+          name: {{ .Release.Name }}-fiber-config
+      containers:
+      - image: {{ .Values.router.image.registry }}{{ .Values.router.image.repository }}:{{ .Values.router.image.tag }}
+        ports:
+        - containerPort: !!int {{ .Values.router.containerPort | default 8080 }}
+        resources:
+          limits:
+            memory: {{ $limits.memory | default "2Gi" | quote }}
+            cpu: {{ $limits.cpu | default "400m" | quote }}
+          requests:
+            memory: {{ $requests.memory | default "512Mi" | quote }}
+            cpu: {{ $requests.cpu | default "200m" | quote }}
+        livenessProbe:
+          httpGet:
+            path: {{ default "/ping" .Values.router.livenessProbe.path }}
+          initialDelaySeconds: {{ default 30 .Values.router.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default 10 .Values.router.livenessProbe.periodSeconds }}
+          failureThreshold: {{ default 5 .Values.router.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default 5 .Values.router.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ default "/healthz" .Values.router.readinessProbe.path }}
+          initialDelaySeconds: {{ default 30 .Values.router.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default 10 .Values.router.readinessProbe.periodSeconds }}
+          failureThreshold: {{ default 5 .Values.router.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ default 5 .Values.router.readinessProbe.timeoutSeconds }}
+        volumeMounts:
+{{ include "bq.volumeMount" . | indent 8 }}
+          - name: fiber-router-config
+            mountPath: /app/config
+        env:
+        - name: APP_NAME
+          value: {{ .Release.Name }}-{{ .Release.Revision }}.{{ .Release.Namespace }}
+        - name: APP_ENVIRONMENT
+          value: {{ .Values.router.config.environment }}
+        - name: APP_LOGLEVEL
+          value: {{ .Values.logging.level }}
+        - name: APP_CUSTOM_METRICS
+          value: !!str {{ $customMetrics.enabled | default false }}
+        - name: APP_JAEGER_ENABLED
+          value: !!str {{ $tracing.enabled | default false }}
+{{- if $tracing.enabled }}
+  {{- if $tracing.collectorEndpoint }}
+        - name: APP_JAEGER_COLLECTOR_ENDPOINT
+          value: {{ $tracing.collectorEndpoint }}
+  {{- else }}
+        - name: APP_JAEGER_REPORTER_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+          value: {{ $tracing.reporterHost }}
+        - name: APP_JAEGER_REPORTER_PORT
+          value: "6831"
+  {{- end }}
+{{- end }}
+        - name: APP_RESULT_LOGGER
+          value: {{ .Values.logging.resultlogger }}
+        - name: APP_FIBER_DEBUG_LOG
+          value: !!str {{ .Values.logging.fiberDebugLog | default false }}
+{{- if .Values.bigquery }}
+        - name: APP_GCP_PROJECT
+          value: {{ .Values.bigquery.gcpProject }}
+        - name: APP_BQ_DATASET
+          value: {{ .Values.bigquery.bqDataset }}
+        - name: APP_BQ_TABLE
+          value: {{ .Values.bigquery.bqTable }}
+        - name: APP_BQ_BATCH_LOAD
+          value: !!str {{ .Values.bigquery.batchLoad | default false }}
+  {{- if eq .Values.fluentd.enabled true }}
+        - name: APP_FLUENTD_HOST
+          value: {{ .Values.fluentd.global.name }}.{{ .Release.Namespace }}.svc.cluster.local
+        - name: APP_FLUENTD_PORT
+          value: !!str {{ .Values.fluentd.global.port }}
+        - name: APP_FLUENTD_TAG
+          value: {{ .Values.fluentd.global.tag }}
+  {{- end }}
+{{- end }}
+{{ include "bq.env" . | indent 6 }}
+{{- if eq .Values.enricher.enabled true }}
+        - name: ENRICHER_ENDPOINT
+          value: "http://{{ .Release.Name }}-enricher.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.enricher.config.endpoint }}"
+        - name: ENRICHER_TIMEOUT
+          value: "{{ .Values.enricher.config.timeout }}"
+{{- end }}
+        - name: ROUTER_CONFIG_FILE
+          value: "./config/fiber.yml"
+        - name: ROUTER_TIMEOUT
+          value: "{{ .Values.router.config.timeout }}"
+{{- if eq .Values.ensembler.enabled true }}
+        - name: ENSEMBLER_ENDPOINT
+          value: "http://{{ .Release.Name }}-ensembler.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.ensembler.config.endpoint }}"
+        - name: ENSEMBLER_TIMEOUT
+          value: "{{ .Values.ensembler.config.timeout }}"
+{{- end }}
+{{- range $item := .Values.router.env }}
+        - name: {{ $item.name }}
+          value: {{ $item.value }}
+{{- end }}

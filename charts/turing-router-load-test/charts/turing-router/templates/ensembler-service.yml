@@ -1,0 +1,43 @@
+{{- if eq .Values.ensembler.enabled true -}}
+{{- $resources := .Values.ensembler.resources | default dict -}}
+{{- $limits := $resources.limits | default dict -}}
+{{- $requests := $resources.requests | default dict -}}
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ensembler
+  namespace: {{ .Release.Namespace }}
+  labels:
+    serving.knative.dev/visibility: cluster-local
+spec:
+  template:
+    metadata:
+      name: {{ .Release.Name }}-ensembler-{{ .Release.Revision }}
+      annotations:
+        autoscaling.knative.dev/class: "kpa.autoscaling.knative.dev"
+        autoscaling.knative.dev/minScale: "{{ .Values.ensembler.minReplica }}"
+        autoscaling.knative.dev/maxScale: "{{ .Values.ensembler.maxReplica }}"
+        autoscaling.knative.dev/target: "{{ .Values.ensembler.targetConcurrency }}"
+    spec:
+      volumes:
+{{ include "bq.volume" . | indent 6 }}
+      containers:
+      - image: {{ .Values.ensembler.image.registry }}{{ .Values.ensembler.image.repository }}:{{ .Values.ensembler.image.tag }}
+        ports:
+          - containerPort: !!int {{ .Values.ensembler.containerPort | default 8080 }}
+        resources:
+          limits:
+            memory: {{ $limits.memory | default "2Gi" | quote }}
+            cpu: {{ $limits.cpu | default "400m" | quote }}
+          requests:
+            memory: {{ $requests.memory | default "512Mi" | quote }}
+            cpu: {{ $requests.cpu | default "200m" | quote }}
+        volumeMounts:
+{{ include "bq.volumeMount" . | indent 8 }}
+        env:
+{{ include "bq.env" . | indent 6 }}
+{{- range $item := .Values.ensembler.env }}
+        - name: {{ $item.name }}
+          value: {{ $item.value }}
+{{- end }}
+{{- end }}

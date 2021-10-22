@@ -1,0 +1,24 @@
+global:
+  name: #Unique name
+image:
+  pullPolicy: IfNotPresent
+  registry: #Docker registry
+  repository: #Image repository
+  tag: #Image tag
+replicaCount: 1
+resources:
+  requests:
+    cpu: "1"
+    memory: 100Mi
+  limits:
+    cpu: "1"
+    memory: 256Mi
+livenessProbe:
+  path: #Relative endpoint. Eg: "/echo"
+  initialDelaySeconds: 5
+readinessProbe:
+  path: #Relative endpoint. Eg: "/echo"
+  initialDelaySeconds: 5
+service:
+  externalPort: 8080
+  internalPort: 8080

@@ -1,6 +1,6 @@
 name: k3s
 
-on: [push]
+on: [workflow_call]
 
 env:
   REGISTRY: ghcr.io
@@ -33,11 +33,6 @@ jobs:
             --agents 3
             --port 80:80@loadbalancer
             --k3s-server-arg "--no-deploy=traefik,metrics-server"
-
-      - run: |
-          kubectl config view
-          ls -l ~/.kube/
-          which k3d
 
       - name: "Install Istio"
         working-directory: .github/workflows-resources

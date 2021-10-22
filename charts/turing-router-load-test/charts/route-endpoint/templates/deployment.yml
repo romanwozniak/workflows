@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "route-endpoint.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "route-endpoint.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels | indent 4 -}}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "route-endpoint.fullname" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ template "route-endpoint.fullname" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ template "route-endpoint.fullname" . }}
+        image: "{{ .Values.image.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - containerPort: {{ .Values.service.internalPort }}
+        livenessProbe:
+          httpGet:
+            path: {{ default "/ping" .Values.livenessProbe.path }}
+            port: {{ .Values.service.internalPort }}
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default 10 .Values.livenessProbe.periodSeconds }}
+          successThreshold: {{ default 1 .Values.livenessProbe.successThreshold }}
+          timeoutSeconds: {{ default 5 .Values.livenessProbe.timeoutSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ default "/healthz" .Values.readinessProbe.path }}
+            port: {{ .Values.service.internalPort }}
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ default 10 .Values.readinessProbe.periodSeconds }}
+          successThreshold: {{ default 1 .Values.readinessProbe.successThreshold }}
+          timeoutSeconds: {{ default 5 .Values.readinessProbe.timeoutSeconds }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}

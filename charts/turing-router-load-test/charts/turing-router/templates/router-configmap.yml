@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-fiber-config
+data:
+  fiber.yml: |-
+{{- if .Values.ensembler.enabled }}
+{{ include "router-with-external-ensembler.yaml" . | indent 4 }}
+{{- else }}
+{{ include "default-router.yaml" . | indent 4 }}
+{{- end }}

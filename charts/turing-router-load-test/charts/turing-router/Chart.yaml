@@ -1,0 +1,4 @@
+apiVersion: v1
+description: "Turing Router: ML experiments routing engine"
+name: turing-router
+version: 1.0.0

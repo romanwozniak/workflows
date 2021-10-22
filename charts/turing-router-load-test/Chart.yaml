@@ -1,0 +1,4 @@
+apiVersion: v1
+description: "Load Test suite for turing-router"
+name: turing-router-load-test
+version: 1.0.0

@@ -1,0 +1,79 @@
+logging:
+  level: INFO
+  resultlogger: Nop
+monitoring:
+  customMetrics:
+    enabled: false
+router:
+  image:
+    pullPolicy: IfNotPresent
+    registry: #Docker registry
+    repository: #Image repository
+    tag: #Image tag
+  livenessProbe:
+    path: "/v1/internal/live"
+  readinessProbe:
+    path: "/v1/internal/ready"
+  minReplica: 0
+  maxReplica: 2
+  targetConcurrency: 4
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 2
+    limits:
+      memory: 512Mi
+      cpu: 4
+  config:
+    environment: #Environment name
+    routes: #Array of routes info. Example shown below.
+      # - id: route-a
+      #   type: PROXY
+      #   endpoint: route_url
+      #   timeout: 50ms
+    properties:
+      default_route_id: #Default route name
+      experiment_engine: nop
+    timeout: 150ms
+enricher:
+  enabled: true
+  image:
+    pullPolicy: IfNotPresent
+    registry: #Docker registry
+    repository: #Image repository
+    tag: #Image tag
+  minReplica: 0
+  maxReplica: 2
+  targetConcurrency: 1.1
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 1
+    limits:
+      memory: 512Mi
+      cpu: 2
+  config:
+    endpoint: #Relative endpoint. Eg: "echo?delay=10ms"
+    timeout: 80ms
+ensembler:
+  enabled: true
+  image:
+    pullPolicy: IfNotPresent
+    registry: #Docker registry
+    repository: #Image repository
+    tag: #Image tag
+  minReplica: 0
+  maxReplica: 2
+  targetConcurrency: 1
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 0.5
+    limits:
+      memory: 128Mi
+      cpu: 1
+  config:
+    endpoint: #Relative endpoint. Eg: "echo?delay=10ms"
+    timeout: 80ms
+fluentd:
+  enabled: false
