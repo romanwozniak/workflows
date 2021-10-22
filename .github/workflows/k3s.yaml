@@ -62,8 +62,7 @@ jobs:
           helm repo add hashicorp https://helm.releases.hashicorp.com
           helm install vault hashicorp/vault \
             --version=${{ env.VAULT_CHART_VERSION }} \
-            --values vault.helm-values.yaml \
-            --wait
+            --values vault.helm-values.yaml
 
           kubectl apply -f vault.ingress.yaml
 
