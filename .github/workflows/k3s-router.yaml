@@ -100,5 +100,6 @@ jobs:
           kubectl get services
           kubectl get pods
           kubectl describe deployment/control
+          kubectl logs deployment/control
           kubectl get kservice
 
