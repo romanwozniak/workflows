@@ -4,4 +4,4 @@ server:
   postStart:
     - /bin/sh
     - -c
-    - echo "          $(date)             "
+    - vault secrets enable -path=kv_v1 -version=1 kv
