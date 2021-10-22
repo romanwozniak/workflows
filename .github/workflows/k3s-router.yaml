@@ -92,13 +92,13 @@ jobs:
       - uses: jupyterhub/action-k8s-await-workloads@v1
         id: wait-for-deployment
         with:
-          timeout: 300 #seconds
+          timeout: 120 #seconds
           max-restarts: -1
 
       - if: always() && steps.wait-for-deployment.outcome == 'failure'
         run: |
           kubectl get services
           kubectl get pods
-          kubectl describe deployment/mockserver
+          kubectl describe deployment/control
           kubectl get serving.knative.dev
 
