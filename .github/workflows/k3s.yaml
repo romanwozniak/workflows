@@ -6,7 +6,7 @@ env:
   REGISTRY: ghcr.io
   TURING_VERSION: 0.0.0-build.1-164b88c
   MLP_VERSION: 1.4.14
-  MERLIN_VERSION: 0.7.0
+  MERLIN_VERSION: 0.9.0
   LOCAL_REGISTRY: registry.localhost:5000
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
       KNATIVE_VERSION: 0.18.3
       KNATIVE_ISTIO_VERSION: 0.18.1
       VAULT_VERSION: 1.8.4
-      VAULT_CHART_VERSION: 0.9.1
+      VAULT_CHART_VERSION: 0.16.1
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -155,7 +155,7 @@ jobs:
             deployment/mlp,
             deployment/merlin,
             deployment/mockserver
-          timeout: 150 #seconds
+          timeout: 120 #seconds
           max-restarts: -1
 
       - if: ${{ always() }}
