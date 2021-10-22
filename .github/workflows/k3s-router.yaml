@@ -90,7 +90,7 @@ jobs:
             --set modelA.replicaCount=${{ env.REPLICA_COUNT }} \
             --wait
 
-      - run: sleep 60
+      - run: sleep 30
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
         id: wait-for-deployment
@@ -100,7 +100,7 @@ jobs:
 
       - if: always()
         run: |
-          kubectl describe deployment/turing-enricher-1-deployment
+          kubectl describe deployment/turing-router-1-deployment
           kubectl describe deployment/turing-ensembler-1-deployment
           kubectl get kservice
 
