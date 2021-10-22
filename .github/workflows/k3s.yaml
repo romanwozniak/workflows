@@ -6,7 +6,7 @@ env:
   REGISTRY: ghcr.io
   TURING_VERSION: 0.0.0-build.1-164b88c
   MLP_VERSION: 1.4.14
-  MERLIN_VERSION: 0.14.0
+  MERLIN_VERSION: 0.7.0
   LOCAL_REGISTRY: registry.localhost:5000
 
 jobs:
@@ -99,7 +99,7 @@ jobs:
           VAULT_TOKEN: root
         run: |
           timeout --foreground 45 bash -c \
-            'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts; do sleep 2; done'
+            'until curl -v -s --fail -H "X-Vault-Token: ${{ env.VAULT_TOKEN }}" http://vault.127.0.0.1.nip.io/v1/sys/mounts | jq; do sleep 2; done'
 
           curl -v \
             --header "X-Vault-Token: ${{ env.VAULT_TOKEN }}" \
@@ -177,9 +177,3 @@ jobs:
 
           timeout --foreground 45 bash -c \
             "until curl -v -s --fail http://merlin.127.0.0.1.nip.io/v1/environments; do sleep 2; done"
-
-  test-jq:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo '{"data": 1}' | jq
