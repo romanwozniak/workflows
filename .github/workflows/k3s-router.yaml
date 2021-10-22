@@ -70,13 +70,13 @@ jobs:
             --set turing.router.minReplica=3 \
             --set turing.router.maxReplica=3 \
             --set turing.enricher.enabled=true \
-            --set turing.enricher.repository=kennethreitz/httpbin \
-            --set turing.enricher.tag=latest \
+            --set turing.enricher.image.repository=kennethreitz/httpbin \
+            --set turing.enricher.image.tag=latest \
             --set turing.enricher.minReplica=3 \
             --set turing.enricher.maxReplica=3 \
             --set turing.ensembler.enabled=true \
-            --set turing.ensembler.repository=kennethreitz/httpbin \
-            --set turing.ensembler.tag=latest \
+            --set turing.ensembler.image.repository=kennethreitz/httpbin \
+            --set turing.ensembler.image.tag=latest \
             --set turing.ensembler.minReplica=3 \
             --set turing.ensembler.maxReplica=3 \
             --set turing.logging.level=INFO \
