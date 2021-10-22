@@ -5,6 +5,8 @@ dependencies:
   - name: route-endpoint
     version: x.x.x
     alias: control
+    condition: control.enabled
   - name: route-endpoint
     version: x.x.x
     alias: modelA
+    condition: modelA.enabled

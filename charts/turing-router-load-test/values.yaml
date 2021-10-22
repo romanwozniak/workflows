@@ -41,6 +41,7 @@ turing:
     enabled: false
 
 control: &echo
+  enabled: false
   global:
     name: control
   image:

@@ -95,10 +95,11 @@ jobs:
           timeout: 120 #seconds
           max-restarts: -1
 
-      - if: always() && steps.wait-for-deployment.outcome == 'failure'
+      - if: always()
         run: |
           kubectl get services
           kubectl get pods
+          kubectl get deployment
           kubectl describe deployment/control
           kubectl logs deployment/control
           kubectl get kservice
