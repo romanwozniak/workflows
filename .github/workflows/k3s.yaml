@@ -141,7 +141,7 @@ jobs:
 
       - run: |
           kubectl describe statefulset/vault
-          kubectl describe pods -l app=vault
+          kubectl describe pods -l app.kubernetes.io/name=vault
 
 
       - name: Install Merlin
