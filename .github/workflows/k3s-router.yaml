@@ -107,7 +107,7 @@ jobs:
 
       - run: |
           timeout --foreground 45 bash -c \
-            curl -v --fail -H "Content-Type: application/json" -X POST -d '{"hello": "world"}' http://turing-router.default.127.0.0.1.nip.io/predict
+            "until curl -v --fail -H \"Content-Type: application/json\" -X POST -d '{\"hello\": \"world\"}' http://turing-router.default.127.0.0.1.nip.io/predict; do sleep 2; done"
 
       - if: always()
         run: |
