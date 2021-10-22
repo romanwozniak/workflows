@@ -63,31 +63,42 @@ jobs:
             -f mockserver.ingress.yaml
 
       - name: "Deploy Router"
+        env:
+          REPLICA_COUNT: 1
         run: |
           helm install turing-router ./charts/turing-router-load-test \
             --set turing.router.image.tag=0.0.0-build.1-e8ee033 \
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
-            --set turing.router.minReplica=3 \
-            --set turing.router.maxReplica=3 \
+            --set turing.router.minReplica=${{ env.REPLICA_COUNT }} \
+            --set turing.router.maxReplica=${{ env.REPLICA_COUNT }} \
             --set turing.enricher.enabled=true \
             --set turing.enricher.image.repository=kennethreitz/httpbin \
             --set turing.enricher.image.tag=latest \
-            --set turing.enricher.minReplica=3 \
-            --set turing.enricher.maxReplica=3 \
+            --set turing.enricher.minReplica=${{ env.REPLICA_COUNT }} \
+            --set turing.enricher.maxReplica=${{ env.REPLICA_COUNT }} \
             --set turing.ensembler.enabled=true \
             --set turing.ensembler.image.repository=kennethreitz/httpbin \
             --set turing.ensembler.image.tag=latest \
-            --set turing.ensembler.minReplica=3 \
-            --set turing.ensembler.maxReplica=3 \
+            --set turing.ensembler.minReplica=${{ env.REPLICA_COUNT }} \
+            --set turing.ensembler.maxReplica=${{ env.REPLICA_COUNT }} \
             --set turing.logging.level=INFO \
             --set control.image.repository=kennethreitz/httpbin \
             --set control.image.tag=latest \
             --set modelA.image.repository=kennethreitz/httpbin \
             --set modelA.image.tag=latest \
-            --set control.replicaCount=3 \
-            --set modelA.replicaCount=3
+            --set control.replicaCount=${{ env.REPLICA_COUNT }} \
+            --set modelA.replicaCount=${{ env.REPLICA_COUNT }}
 
       - uses: jupyterhub/action-k8s-await-workloads@v1
+        id: wait-for-deployment
         with:
           timeout: 300 #seconds
           max-restarts: -1
+
+      - if: always() && steps.wait-for-deployment.outcome == 'failure'
+        run: |
+          kubectl get services
+          kubectl get pods
+          kubectl describe deployment/mockserver
+          kubectl get serving.knative.dev
+
