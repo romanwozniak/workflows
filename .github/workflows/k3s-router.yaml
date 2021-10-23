@@ -1,6 +1,6 @@
 name: k3s-router
 
-on: [push]
+on: [workflow_dispatch]
 
 env:
   REGISTRY: ghcr.io
