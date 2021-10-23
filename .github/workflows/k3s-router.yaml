@@ -71,12 +71,12 @@ jobs:
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
             --set turing.router.minReplica=${{ env.REPLICA_COUNT }} \
             --set turing.router.maxReplica=${{ env.REPLICA_COUNT }} \
-            --set turing.enricher.enabled=true \
+            --set turing.enricher.enabled=false \
             --set turing.enricher.image.repository=kennethreitz/httpbin \
             --set turing.enricher.image.tag=latest \
             --set turing.enricher.minReplica=${{ env.REPLICA_COUNT }} \
             --set turing.enricher.maxReplica=${{ env.REPLICA_COUNT }} \
-            --set turing.ensembler.enabled=true \
+            --set turing.ensembler.enabled=false \
             --set turing.ensembler.image.repository=kennethreitz/httpbin \
             --set turing.ensembler.image.tag=latest \
             --set turing.ensembler.minReplica=${{ env.REPLICA_COUNT }} \
@@ -101,9 +101,19 @@ jobs:
       - if: always()
         run: |
           kubectl logs -l app=turing-router-1 -c user-container
-          kubectl describe pods -l app=turing-router-1
-          kubectl describe deployment/turing-router-1-deployment
-          kubectl describe deployment/turing-ensembler-1-deployment
+
+          echo "::group::deployment"
+          kubectl get deployment -l "serving.knative.dev/service=turing-router" --output yaml
+          echo "::endgroup::"
+
+          echo "::group::fiber config"
+          kubectl get cm/turing-router-1 -o yaml
+          echo "::endgroup::"
+
+          echo "::group::describe ksvc"
+          kubectl describe ksvc turing-router
+          echo "::endgroup::"
+
           kubectl get kservice
 
       - run: |
