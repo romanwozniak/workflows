@@ -1,0 +1,14 @@
+name: Test checks
+
+on:
+  push:
+    paths:
+      - ".github/workflows/infra.yaml"
+      - ".github/workflows-resources/**"
+
+jobs:
+  test-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "OK"
