@@ -101,15 +101,17 @@ jobs:
       - if: always()
         run: |
           kubectl logs -l app=turing-router-1 -c user-container
+          kubectl describe pods -l app=turing-router-1
           kubectl describe deployment/turing-router-1-deployment
           kubectl describe deployment/turing-ensembler-1-deployment
           kubectl get kservice
 
       - run: |
           timeout --foreground 45 bash -c \
-            "until curl -v --fail -H \"Content-Type: application/json\" -X POST -d '{\"hello\": \"world\"}' http://turing-router.default.127.0.0.1.nip.io/predict; do sleep 2; done"
+            "until curl -v --fail -H \"Content-Type: application/json\" -X POST -d '{\"hello\": \"world\"}' http://turing-router.default.127.0.0.1.nip.io/v1/predict; do sleep 2; done"
 
       - if: always()
         run: |
           kubectl logs -l app=turing-router-1 -c user-container
+          kubectl describe pods -l app=turing-router-1
           kubectl get kservice
