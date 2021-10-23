@@ -71,7 +71,7 @@ jobs:
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
             --set turing.router.minReplica=${{ env.REPLICA_COUNT }} \
             --set turing.router.maxReplica=${{ env.REPLICA_COUNT }} \
-            --set turing.enricher.enabled=false \
+            --set turing.enricher.enabled=true \
             --set turing.enricher.image.repository=kennethreitz/httpbin \
             --set turing.enricher.image.tag=latest \
             --set turing.enricher.minReplica=${{ env.REPLICA_COUNT }} \
