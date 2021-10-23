@@ -107,7 +107,7 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::fiber config"
-          kubectl get cm/turing-turing-fiber-config-1 -o yaml
+          kubectl get cm/turing-fiber-config -o yaml
           echo "::endgroup::"
 
           echo "::group::describe ksvc"
