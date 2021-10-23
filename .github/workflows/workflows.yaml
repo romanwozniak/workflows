@@ -34,4 +34,4 @@ jobs:
     uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
     with:
       mlp_version: 1.4.14
-      environment: ${{ github.ref == 'refs/heads/main' && '' || 'e2e' }}
+      environment: ${{ github.ref != 'refs/heads/main' && 'e2e' || '' }}
