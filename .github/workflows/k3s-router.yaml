@@ -71,7 +71,7 @@ jobs:
             --set turing.router.image.registry=ghcr.io/romanwozniak/turing/ \
             --set turing.router.minReplica=${{ env.REPLICA_COUNT }} \
             --set turing.router.maxReplica=${{ env.REPLICA_COUNT }} \
-            --set turing.enricher.enabled=true \
+            --set turing.enricher.enabled=false \
             --set turing.enricher.image.repository=kennethreitz/httpbin \
             --set turing.enricher.image.tag=latest \
             --set turing.enricher.minReplica=${{ env.REPLICA_COUNT }} \
@@ -102,16 +102,24 @@ jobs:
         run: |
           kubectl logs -l app=turing-router-1 -c user-container
 
-          echo "::group::deployment"
+          echo "::group::deployment turing-router"
           kubectl get deployment -l "serving.knative.dev/service=turing-router" --output yaml
+          echo "::endgroup::"
+
+          echo "::group::deployment turing-enricher"
+          kubectl get deployment -l "serving.knative.dev/service=turing-enricher" --output yaml
           echo "::endgroup::"
 
           echo "::group::fiber config"
           kubectl get cm/turing-fiber-config -o yaml
           echo "::endgroup::"
 
-          echo "::group::describe ksvc"
+          echo "::group::describe ksvc/router"
           kubectl describe ksvc turing-router
+          echo "::endgroup::"
+
+          echo "::group::describe ksvc/enricher"
+          kubectl describe ksvc turing-enricher
           echo "::endgroup::"
 
           kubectl get kservice
@@ -119,6 +127,14 @@ jobs:
       - run: |
           timeout --foreground 45 bash -c \
             "until curl -v --fail -H \"Content-Type: application/json\" -X POST -d '{\"hello\": \"world\"}' http://turing-router.default.127.0.0.1.nip.io/v1/predict; do sleep 2; done"
+
+          for i in {1..10}; do
+            curl -v --fail \
+              -H "Content-Type: application/json" \
+              -X POST -d '{"hello": "world"}' \
+              http://turing-router.default.127.0.0.1.nip.io/v1/predict
+            sleep 2
+          done
 
       - if: always()
         run: |
