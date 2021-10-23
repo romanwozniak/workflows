@@ -81,7 +81,7 @@ jobs:
             --set turing.ensembler.image.tag=latest \
             --set turing.ensembler.minReplica=${{ env.REPLICA_COUNT }} \
             --set turing.ensembler.maxReplica=${{ env.REPLICA_COUNT }} \
-            --set turing.logging.level=INFO \
+            --set turing.logging.level=DEBUG \
             --set control.image.repository=kennethreitz/httpbin \
             --set control.image.tag=latest \
             --set modelA.image.repository=kennethreitz/httpbin \
