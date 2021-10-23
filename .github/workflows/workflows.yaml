@@ -1,6 +1,6 @@
 name: Reusable workflows
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   pull-image:
@@ -29,6 +29,8 @@ jobs:
           path: mlp-${{ env.MLP_VERSION }}.tar
 
   publish:
+    if: >-
+      github.event_name != 'pull_request'
     needs:
       - pull-image
     uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
