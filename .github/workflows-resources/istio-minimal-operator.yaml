@@ -6,9 +6,9 @@ spec:
       proxy:
         autoInject: enabled
       useMCP: false
-      gateways:
-        istio-ingressgateway:
-          runAsRoot: true
+    gateways:
+      istio-ingressgateway:
+        runAsRoot: true
 #      jwtPolicy: first-party-jwt
 
   addonComponents:
