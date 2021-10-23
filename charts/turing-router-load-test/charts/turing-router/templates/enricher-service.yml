@@ -9,6 +9,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     serving.knative.dev/visibility: cluster-local
+
 spec:
   template:
     metadata:

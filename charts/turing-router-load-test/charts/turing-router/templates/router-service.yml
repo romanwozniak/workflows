@@ -10,6 +10,9 @@ metadata:
   name: {{ .Release.Name }}-router
   namespace: {{ .Release.Namespace }}
 spec:
+  traffic:
+  - latestRevision: true
+    percent: 100
   template:
     metadata:
       name: {{ .Release.Name }}-router-{{ .Release.Revision }}
@@ -40,6 +43,7 @@ spec:
             path: {{ default "/ping" .Values.router.livenessProbe.path }}
           initialDelaySeconds: {{ default 30 .Values.router.livenessProbe.initialDelaySeconds }}
           periodSeconds: {{ default 10 .Values.router.livenessProbe.periodSeconds }}
+          successThreshold: {{ default 1 .Values.router.livenessProbe.successThreshold }}
           failureThreshold: {{ default 5 .Values.router.livenessProbe.successThreshold }}
           timeoutSeconds: {{ default 5 .Values.router.livenessProbe.timeoutSeconds }}
         readinessProbe:
@@ -47,12 +51,14 @@ spec:
             path: {{ default "/healthz" .Values.router.readinessProbe.path }}
           initialDelaySeconds: {{ default 30 .Values.router.readinessProbe.initialDelaySeconds }}
           periodSeconds: {{ default 10 .Values.router.readinessProbe.periodSeconds }}
-          failureThreshold: {{ default 5 .Values.router.readinessProbe.successThreshold }}
+          successThreshold: {{ default 1 .Values.router.readinessProbe.successThreshold }}
+          failureThreshold: {{ default 5 .Values.router.readinessProbe.failureThreshold }}
           timeoutSeconds: {{ default 5 .Values.router.readinessProbe.timeoutSeconds }}
         volumeMounts:
 {{ include "bq.volumeMount" . | indent 8 }}
           - name: fiber-router-config
             mountPath: /app/config
+            readOnly: true
         env:
         - name: APP_NAME
           value: {{ .Release.Name }}-{{ .Release.Revision }}.{{ .Release.Namespace }}
