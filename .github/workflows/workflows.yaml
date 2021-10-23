@@ -1,0 +1,44 @@
+name: Reusable workflows
+
+on: [push]
+
+jobs:
+  pull-image:
+    runs-on: ubuntu-latest
+    env:
+      MLP_VERSION: 1.4.14
+      REGISTRY: ghcr.io
+    steps:
+      - name: Log in to the GH Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          docker pull ${{ env.REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }}
+
+          docker image save \
+            --output mlp-${{ env.MLP_VERSION }}.tar \
+            ${{ env.REGISTRY }}/gojek/mlp:v${{ env.MLP_VERSION }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mlp-${{ env.MLP_VERSION }}.tar
+          path: mlp-${{ env.MLP_VERSION }}.tar
+
+  publish:
+    needs:
+      - pull-image
+    uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
+    with:
+      mlp_version: 1.4.14
+
+  feature:
+    needs:
+      - pull-image
+    uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
+    with:
+      mlp_version: 1.4.14
+      environment: e2e
