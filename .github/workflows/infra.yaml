@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/infra.yaml"
       - ".github/workflows-resources/**"
+    tags:
+      - 'infra/v**'
 
 jobs:
   test-infra:
