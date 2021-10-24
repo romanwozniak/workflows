@@ -33,6 +33,6 @@ runs:
         fi
 
         echo release_type=$release_type
-        echo '::set-output name=release-type::$release_type'
+        echo '::set-output name=release-type::$(echo $release_type)'
       id: tag-check
       shell: bash
