@@ -23,16 +23,14 @@ runs:
   using: composite
   steps:
     - run: |
-        release_type=dev
         release_regex='^${{ inputs.prefix }}${{ inputs.release_tag_regex }}$'
         prerelease_regex='^${{ inputs.prefix }}${{ inputs.prerelease_tag_regex }}$'
         if [[ '${{ github.event.ref }}' =~ ${release_regex} ]]; then
-          release_type=release
+          echo '::set-output name=release-type::release'
         elif [[ '${{ github.event.ref }}' =~ ${prerelease_regex} ]]; then
-          release_type=pre-release
+          echo '::set-output name=release-type::pre-release'
+        else
+          echo '::set-output name=release-type::dev'
         fi
-
-        echo release_type=$release_type
-        echo '::set-output name=release-type::$(echo $release_type)'
       id: tag-check
       shell: bash
