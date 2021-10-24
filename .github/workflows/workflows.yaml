@@ -42,7 +42,7 @@ jobs:
       release-type: ${{ steps.release-rules.outputs.release-type }}
     steps:
       - id: release-rules
-        uses: ./.github/actions/release-rules@test
+        uses: .github/actions/release-rules@test
 
 
   publish:
