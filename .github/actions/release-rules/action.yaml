@@ -23,8 +23,8 @@ runs:
   using: composite
   steps:
     - run: |
-        release_regex='^${{ inputs.prefix }}${{ inputs.release_tag_regex }}$'
-        prerelease_regex='^${{ inputs.prefix }}${{ inputs.prerelease_tag_regex }}$'
+        release_regex='^refs/tags/${{ inputs.prefix }}${{ inputs.release_tag_regex }}$'
+        prerelease_regex='^refs/tags/${{ inputs.prefix }}${{ inputs.prerelease_tag_regex }}$'
         if [[ '${{ github.event.ref }}' =~ ${release_regex} ]]; then
           echo '::set-output name=release-type::release'
         elif [[ '${{ github.event.ref }}' =~ ${prerelease_regex} ]]; then
