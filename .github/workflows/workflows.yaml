@@ -45,6 +45,14 @@ jobs:
       - id: release-rules
         uses: ./.github/actions/release-rules
 
+  test:
+    runs-on: ubuntu-latest
+    needs:
+      - pull-image
+      - check-release-rules
+    steps:
+      - run:
+          echo ${{ needs.check-release-rules.outputs.release-type }}
 
   publish:
     # Automatically publish release and pre-release artifacts.
