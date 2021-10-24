@@ -42,7 +42,7 @@ jobs:
       release-type: ${{ steps.release-rules.outputs.release-type }}
     steps:
       - id: release-rules
-        uses: ./github/actions/release-rules
+        uses: ./.github/actions/release-rules
 
   publish:
     # Automatically publish release and pre-release artifacts.
