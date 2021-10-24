@@ -5,8 +5,16 @@ on:
     paths:
       - ".github/workflows/infra.yaml"
       - ".github/charts/**"
+    branches:
+      - '**'
     tags:
       - 'infra/v**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/infra.yaml"
+      - ".github/charts/**"
 
 jobs:
   lint:
