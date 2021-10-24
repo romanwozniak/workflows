@@ -6,7 +6,7 @@ on:
       - ".github/workflows/infra.yaml"
       - ".github/charts/**"
     branches:
-      - '**'
+      - main
     tags:
       - 'infra/v**'
   pull_request:
