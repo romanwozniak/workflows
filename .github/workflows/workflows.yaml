@@ -41,8 +41,9 @@ jobs:
     outputs:
       release-type: ${{ steps.release-rules.outputs.release-type }}
     steps:
+      - uses: actions/checkout@v2
       - id: release-rules
-        uses: romanwozniak/workflows/.github/actions/release-rules@test
+        uses: ./.github/actions/release-rules
 
 
   publish:
