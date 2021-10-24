@@ -26,9 +26,9 @@ runs:
         release_type=dev
         release_regex='^${{ inputs.prefix }}${{ inputs.release_tag_regex }}$'
         prerelease_regex='^${{ inputs.prefix }}${{ inputs.prerelease_tag_regex }}$'
-        if [[ ${{ github.event.ref }} =~ ${release_regex} ]]; then
+        if [[ (${{ github.event.ref }} || '') =~ ${release_regex} ]]; then
           release_type=release
-        elif [[ ${{ github.event.ref }} =~ ${prerelease_regex} ]]; then
+        elif [[ (${{ github.event.ref }} || '') =~ ${prerelease_regex} ]]; then
           release_type=pre-release
         fi
 
