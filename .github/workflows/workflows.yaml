@@ -1,6 +1,14 @@
 name: Reusable workflows
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
 
 jobs:
   pull-image:
@@ -28,12 +36,26 @@ jobs:
           name: mlp-${{ env.MLP_VERSION }}.tar
           path: mlp-${{ env.MLP_VERSION }}.tar
 
+  check-release-rules:
+    runs-on: ubuntu-latest
+    outputs:
+      release-type: ${{ steps.release-rules.outputs.release-type }}
+    steps:
+      - id: release-rules
+        uses: ./github/actions/release-rules@test
+
   publish:
+    # Automatically publish release and pre-release artifacts.
+    # As for dev releases, make it possible to publish artifacts
+    # manually by approving 'deployment' in the 'manual' environment
     if: >-
-      github.event_name != 'pull_request'
+      ( needs.check-release-rules.outputs.release-type != 'dev' )
+        ||
+      ( github.event_name != 'pull_request' )
     needs:
       - pull-image
+      - check-release-rules
     uses: romanwozniak/workflows/.github/workflows/publish.yaml@main
     with:
       mlp_version: 1.4.14
-      environment: ${{ github.ref != 'refs/heads/main' && 'e2e' || '' }}
+      environment: ${{ needs.check-release-rules.outputs.release-type == 'dev' && 'e2e' || '' }}
